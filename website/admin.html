@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Reclaim Era — Admin Dashboard</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body{padding-bottom:110px}
+  .adm-header{position:sticky;top:0;z-index:50;background:var(--cream);border-bottom:1px solid var(--line);padding:16px 0}
+  .adm-header .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .adm-title{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .adm-badge{background:var(--ink);color:var(--cream);font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;border-radius:999px}
+  .adm-section{margin-top:44px}
+  .adm-section > h2{font-size:1.5rem;margin-bottom:6px}
+  .adm-section > .sub{color:var(--ink-soft);font-size:.92rem;margin-bottom:22px;max-width:640px}
+  .howto{background:var(--green-tint);border:1.5px solid var(--green);border-radius:var(--radius);padding:20px 24px;margin-top:28px;font-size:.93rem;line-height:1.7}
+  .howto b{color:var(--green-ink)}
+  .howto ol{margin:8px 0 0 20px;list-style:decimal}
+  .prod-editor{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);padding:22px;margin-bottom:16px;display:grid;grid-template-columns:120px 1fr;gap:20px;align-items:start}
+  .prod-editor.hidden-prod{opacity:.55}
+  .prod-thumb{width:120px;height:120px;border-radius:16px;background:var(--cream);display:grid;place-items:center;padding:8px}
+  .prod-thumb svg{width:100%;height:100%}
+  .pe-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .pe-fields .full{grid-column:1/-1}
+  .pe-toolbar{grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px}
+  .pe-toolbar .spacer{flex:1}
+  .icon-btn{width:38px;height:38px;border-radius:11px;border:1.5px solid var(--line);background:var(--paper);display:grid;place-items:center;font-size:1rem;font-weight:700;color:var(--ink);transition:all .15s}
+  .icon-btn:hover{background:var(--cream-2)}
+  .icon-btn.danger{color:#a3341f;border-color:#e4b7ab}
+  .icon-btn.danger:hover{background:#FAE8E1}
+  .switch-row{display:flex;align-items:center;gap:9px;font-size:.85rem;font-weight:600;color:var(--ink-soft)}
+  .switch-row input{width:18px;height:18px;accent-color:var(--green)}
+  .adm-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:640px}
+  .adm-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;max-width:640px}
+  .actionbar{
+    position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--ink);color:var(--cream);
+    padding:14px 0 calc(14px + env(safe-area-inset-bottom));
+  }
+  .actionbar .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .actionbar .status{font-size:.8rem;color:rgba(255,255,255,.7);margin-right:auto}
+  .gate{position:fixed;inset:0;z-index:300;background:var(--cream);display:grid;place-items:center;padding:24px}
+  .gate .form-card{max-width:420px;width:100%;text-align:center}
+  .gate .wordmark{justify-content:center;font-size:1.6rem;margin-bottom:8px}
+  #previewGrid{pointer-events:none}
+  @media(max-width:700px){
+    .prod-editor{grid-template-columns:1fr}
+    .prod-thumb{width:96px;height:96px}
+    .pe-fields{grid-template-columns:1fr}
+    .adm-grid-2,.adm-grid-3{grid-template-columns:1fr}
+    .actionbar .status{width:100%;margin:0 0 4px}
+    .actionbar .btn{flex:1;padding:11px 10px;font-size:.84rem}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="form-card">
+    <span class="wordmark" style="display:block">re<span class="k">cla</span><span class="di">&#305;<i></i></span><span class="k">m</span> <span class="t">era</span><span class="dot">.</span></span>
+    <p style="font-weight:700;margin-bottom:4px">Admin dashboard</p>
+    <p style="font-size:.88rem;color:var(--ink-soft);margin-bottom:20px">Enter the passcode to manage the shop and site numbers.</p>
+    <div class="field"><input type="password" id="passInput" placeholder="Passcode" autocomplete="off"></div>
+    <p id="passError" style="display:none;color:#a3341f;font-size:.85rem;font-weight:600;margin-top:10px">That passcode is not right. Try again.</p>
+    <button class="btn btn-green" style="width:100%;margin-top:16px" onclick="tryPass()">Open Dashboard</button>
+    <p style="font-size:.78rem;color:var(--ink-soft);margin-top:16px"><a href="index.html" style="text-decoration:underline">Back to the website</a></p>
+  </div>
+</div>
+
+<header class="adm-header">
+  <div class="wrap">
+    <div class="adm-title">
+      <span class="wordmark" style="font-size:1.3rem">re<span class="k">cla</span><span class="di">&#305;<i></i></span><span class="k">m</span> <span class="t">era</span><span class="dot">.</span></span>
+      <span class="adm-badge">Admin</span>
+    </div>
+    <a href="index.html" target="_blank" class="btn btn-outline btn-sm">View site ↗</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="howto">
+    <b>How publishing works:</b> your edits below are saved instantly as a <b>draft on this device</b>, so you can
+    preview them safely on the site. Nobody else sees them yet. When you are happy:
+    <ol>
+      <li>Press <b>Download publish file</b> in the bottom bar (it saves <b>site-data.js</b>).</li>
+      <li>Replace the file <b>js/site-data.js</b> on your website hosting with the downloaded one (or send it to your web person).</li>
+    </ol>
+  </div>
+
+  <section class="adm-section">
+    <h2>Shop products</h2>
+    <p class="sub">These appear on the Shop page and the home page preview (first 4). Use the arrows to reorder; unticking "Show on site" hides a product without deleting it.</p>
+    <div id="productList"></div>
+    <button class="btn btn-green" onclick="addProduct()">+ Add a product</button>
+  </section>
+
+  <section class="adm-section">
+    <h2>Impact numbers</h2>
+    <p class="sub">Shown in the circles animation on the home page. Keep them short, like "22K+" or "13".</p>
+    <div class="adm-grid-3">
+      <div class="field"><label>Items diverted</label><input id="statItems" type="text"></div>
+      <div class="field"><label>Livelihoods created</label><input id="statLivelihoods" type="text"></div>
+      <div class="field"><label>Schools reached</label><input id="statSchools" type="text"></div>
+    </div>
+  </section>
+
+  <section class="adm-section">
+    <h2>Contact phone</h2>
+    <p class="sub">Replaces the "+91 XXXXX XXXXX" placeholder in the footer, pick-up page and contact page. Leave empty to keep the placeholder.</p>
+    <div class="adm-grid-2">
+      <div class="field"><label>Phone number</label><input id="sitePhone" type="text" placeholder="+91 98765 43210"></div>
+    </div>
+  </section>
+
+  <section class="adm-section">
+    <h2>Live preview</h2>
+    <p class="sub">This is exactly how the product cards will look on the Shop page.</p>
+    <div class="prod-grid" id="previewGrid"></div>
+  </section>
+</main>
+
+<div class="actionbar">
+  <div class="wrap">
+    <span class="status" id="statusText">All changes saved as a draft on this device.</span>
+    <button class="btn btn-outline-light btn-sm" onclick="discardDraft()">Discard draft</button>
+    <button class="btn btn-outline-light btn-sm" onclick="copyPublish()">Copy file</button>
+    <button class="btn btn-green btn-sm" onclick="downloadPublish()">Download publish file</button>
+  </div>
+</div>
+
+<script src="js/site-data.js"></script>
+<script src="js/render.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* ------- passcode gate (a convenience lock, not real security:
+     anyone with the file can read it — keep the page unlisted) ------- */
+  var ADMIN_PASSCODE = "reclaim2026";   // <-- change this!
+  var gate = document.getElementById("gate");
+  if (sessionStorage.getItem("re-admin-ok") === "1") gate.remove();
+  window.tryPass = function () {
+    if (document.getElementById("passInput").value === ADMIN_PASSCODE) {
+      sessionStorage.setItem("re-admin-ok", "1");
+      gate.remove();
+    } else {
+      document.getElementById("passError").style.display = "block";
+    }
+  };
+  document.getElementById("passInput").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") window.tryPass();
+  });
+
+  /* ------- state ------- */
+  var R = window.RE_RENDER;
+  var state = JSON.parse(JSON.stringify(window.__RE_ACTIVE_DATA || window.RE_DATA || {}));
+  state.products = state.products || [];
+  state.stats = state.stats || {};
+
+  var listEl = document.getElementById("productList");
+  var previewEl = document.getElementById("previewGrid");
+  var statusEl = document.getElementById("statusText");
+
+  function save() {
+    localStorage.setItem(R.PREVIEW_KEY, JSON.stringify(state));
+    statusEl.textContent = "Draft saved " + new Date().toLocaleTimeString() + " (this device only). Publish to make it live.";
+    renderPreview();
+  }
+
+  function renderPreview() {
+    R.renderInto(previewEl, state, { variant: "full" });
+  }
+
+  /* ------- product editors ------- */
+  var ART_OPTIONS = [
+    ["tote", "Tote bag"],
+    ["backpack", "Backpack"],
+    ["organizer", "Organizer"],
+    ["bundle", "Gift bundle"]
+  ];
+
+  function field(label, value, oninputName, idx, extra) {
+    return '<div class="field ' + (extra || "") + '"><label>' + label + "</label>" +
+      '<input type="text" value="' + R.esc(value || "") + '" oninput="' + oninputName + "(" + idx + ", this.value)\"></div>";
+  }
+
+  function renderEditors() {
+    listEl.innerHTML = state.products.map(function (p, i) {
+      var opts = ART_OPTIONS.map(function (o) {
+        return '<option value="' + o[0] + '"' + (p.art === o[0] ? " selected" : "") + ">" + o[1] + "</option>";
+      }).join("");
+      return (
+        '<div class="prod-editor' + (p.visible === false ? " hidden-prod" : "") + '">' +
+        '<div class="prod-thumb">' + (R.ART[p.art] || R.ART.tote) + "</div>" +
+        '<div class="pe-fields">' +
+        field("Product name", p.name, "upName", i) +
+        '<div class="field"><label>Artwork</label><select onchange="upArt(' + i + ', this.value)">' + opts + "</select></div>" +
+        field("Price (optional, e.g. ₹799)", p.price, "upPrice", i) +
+        field("Impact line (e.g. Funds 10 notebooks)", p.impact, "upImpact", i) +
+        field("Short description", p.desc, "upDesc", i, "full") +
+        '<div class="pe-toolbar">' +
+        '<label class="switch-row"><input type="checkbox"' + (p.visible !== false ? " checked" : "") +
+        ' onchange="upVisible(' + i + ', this.checked)"> Show on site</label>' +
+        '<span class="spacer"></span>' +
+        '<button class="icon-btn" title="Move up" onclick="moveProd(' + i + ',-1)">↑</button>' +
+        '<button class="icon-btn" title="Move down" onclick="moveProd(' + i + ',1)">↓</button>' +
+        '<button class="icon-btn danger" title="Delete" onclick="delProd(' + i + ')">✕</button>' +
+        "</div></div></div>"
+      );
+    }).join("") || '<p style="color:var(--ink-soft);margin-bottom:16px">No products yet. Add your first one below.</p>';
+  }
+
+  window.upName = function (i, v) { state.products[i].name = v; save(); };
+  window.upPrice = function (i, v) { state.products[i].price = v; save(); };
+  window.upImpact = function (i, v) { state.products[i].impact = v; save(); };
+  window.upDesc = function (i, v) { state.products[i].desc = v; save(); };
+  window.upArt = function (i, v) { state.products[i].art = v; save(); renderEditors(); };
+  window.upVisible = function (i, v) { state.products[i].visible = v; save(); renderEditors(); };
+  window.moveProd = function (i, dir) {
+    var j = i + dir;
+    if (j < 0 || j >= state.products.length) return;
+    var t = state.products[i]; state.products[i] = state.products[j]; state.products[j] = t;
+    save(); renderEditors();
+  };
+  window.delProd = function (i) {
+    if (!confirm('Delete "' + (state.products[i].name || "this product") + '"? You can also just untick "Show on site".')) return;
+    state.products.splice(i, 1);
+    save(); renderEditors();
+  };
+  window.addProduct = function () {
+    state.products.push({
+      id: "product-" + Date.now(),
+      name: "New product",
+      art: "tote",
+      price: "",
+      impact: "",
+      desc: "",
+      visible: true
+    });
+    save(); renderEditors();
+    listEl.lastElementChild && listEl.lastElementChild.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  /* ------- stats + phone ------- */
+  function bindText(id, get, set) {
+    var el = document.getElementById(id);
+    el.value = get() || "";
+    el.addEventListener("input", function () { set(el.value); save(); });
+  }
+  bindText("statItems", function () { return state.stats.items; }, function (v) { state.stats.items = v; });
+  bindText("statLivelihoods", function () { return state.stats.livelihoods; }, function (v) { state.stats.livelihoods = v; });
+  bindText("statSchools", function () { return state.stats.schools; }, function (v) { state.stats.schools = v; });
+  bindText("sitePhone", function () { return state.phone; }, function (v) { state.phone = v; });
+
+  /* ------- publish ------- */
+  function publishContent() {
+    return (
+      "/* Reclaim Era editable site data — generated by admin.html on " +
+      new Date().toLocaleString() +
+      ".\n   To publish: replace js/site-data.js on the website hosting with this file. */\n" +
+      "window.RE_DATA = " + JSON.stringify(state, null, 2) + ";\n"
+    );
+  }
+  window.downloadPublish = function () {
+    var blob = new Blob([publishContent()], { type: "text/javascript" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "site-data.js";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    statusEl.textContent = "Publish file downloaded. Replace js/site-data.js on your hosting to make it live.";
+  };
+  window.copyPublish = function () {
+    navigator.clipboard.writeText(publishContent()).then(function () {
+      statusEl.textContent = "Publish file copied to clipboard.";
+    }, function () {
+      statusEl.textContent = "Could not copy. Use Download instead.";
+    });
+  };
+  window.discardDraft = function () {
+    if (!confirm("Discard the draft on this device and go back to the published version?")) return;
+    localStorage.removeItem(R.PREVIEW_KEY);
+    location.reload();
+  };
+
+  renderEditors();
+  renderPreview();
+})();
+</script>
+</body>
+</html>

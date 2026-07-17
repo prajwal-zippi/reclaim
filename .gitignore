@@ -1,0 +1,26 @@
+# IDE and editor files
+.claude/
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python files
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+backend/venv/
+backend/.venv/
+backend/__pycache__/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+backend/.env
