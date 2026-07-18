@@ -86,6 +86,12 @@ BUNDLE = '''<svg viewBox="0 0 200 200" aria-hidden="true">
 </svg>'''
 
 # ---------------------------------------------------------------- shell
+# ---- Razorpay Payment Links (PASTE the real links from the client here) ----
+# Create these in the Razorpay Dashboard -> Payment Links. Use one that lets the
+# donor enter any amount for donations, and one (min Rs.500) for the campaign fee.
+RZP_DONATE = "REPLACE_WITH_RAZORPAY_DONATE_LINK"
+RZP_CAMPAIGN = "REPLACE_WITH_RAZORPAY_CAMPAIGN_LINK"
+
 FONTS = '''<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">'''
@@ -147,7 +153,7 @@ def header(active=""):
       <li><a{cls("contact")} href="contact.html">Contact</a></li>
     </ul>
     <div class="header-cta">
-      <a href="get-involved.html#donate" class="btn btn-terra btn-sm btn-donate-top">Donate</a>
+      <a href="{RZP_DONATE}" target="_blank" rel="noopener noreferrer" data-razorpay class="btn btn-terra btn-sm btn-donate-top">Donate</a>
       <a href="request-pickup.html" class="btn btn-green btn-sm">Request Pick-Up</a>
       <button class="nav-toggle" aria-label="Menu" aria-expanded="false">
         <svg class="icon-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -158,7 +164,7 @@ def header(active=""):
 </header>
 <div class="mobile-bar">
   <a href="request-pickup.html" class="mb-pickup">Pick-Up</a>
-  <a href="get-involved.html#donate" class="mb-donate">Donate</a>
+  <a href="{RZP_DONATE}" target="_blank" rel="noopener noreferrer" data-razorpay class="mb-donate">Donate</a>
   <a href="shop.html" class="mb-shop">Shop</a>
 </div>'''
 
@@ -954,7 +960,7 @@ involved_body = page_hero(
         <span class="metric">12A &amp; 80G tax-exempt</span>
         <h3>Donate</h3>
         <p>One-time or monthly giving that funds teacher salaries, notebooks and school infrastructure through LEACT.</p>
-        <a href="contact.html" class="btn btn-terra" style="margin-top:auto;align-self:flex-start">Donate Now {I["arrow"]}</a>
+        <a href="{RZP_DONATE}" target="_blank" rel="noopener noreferrer" data-razorpay class="btn btn-terra" style="margin-top:auto;align-self:flex-start">Donate Now {I["arrow"]}</a>
       </div>
       <div class="init-card t-green reveal" id="donate-equipment">
         <div class="icon-chip bg-green-t">{I["laptop"]}</div>
@@ -1061,9 +1067,9 @@ def legal_section(title, body):
 privacy_body = page_hero('<span>Privacy Policy</span>', 'Privacy <span style="color:var(--green-deep)">policy.</span>',
     'How Reclaim Era (Lamp Educational and Charitable Trust) collects, uses and protects your information.') + '''
 <section class="section" style="padding-top:10px"><div class="wrap" style="max-width:820px"><div class="prose">''' + \
-legal_section('What we collect', 'When you use our forms we collect the details you type in: your name, phone number, email address, pickup or campaign address, and your message. The campaign logistics fee is paid directly from your UPI app to the Trust\u2019s UPI ID; we store only the UPI transaction reference (UTR) that you provide, so we can match the payment. We never see or store your card or bank details.') + \
+legal_section('What we collect', 'When you use our forms we collect the details you type in: your name, phone number, email address, pickup or campaign address, and your message. The campaign logistics fee is paid through Razorpay; we receive only a payment reference and status, and never see or store your card, UPI or bank details.') + \
 legal_section('How we use it', 'We use your details only to run our services: scheduling pickups, coordinating campaigns, responding to enquiries, issuing receipts, and sending updates you have asked for. We do not sell or rent your information to anyone.') + \
-legal_section('Where it goes', 'Form submissions are delivered to our team by email. Campaign applications and their payment status are stored in our secure database. UPI payments go directly to the Trust\u2019s bank account through your own UPI app. We share information with no third parties unless the law requires it.') + \
+legal_section('Where it goes', 'Form submissions are delivered to our team by email. Campaign applications and their payment status are stored in our secure database. Payments are processed by Razorpay under their own privacy policy and settled to the Trust\u2019s account. We share information with no third parties unless the law requires it.') + \
 legal_section('Cookies and tracking', 'This site does not use advertising cookies. Local storage in your browser is used only for site functionality.') + \
 legal_section('Your rights', 'You can ask us at any time to see, correct or delete the information we hold about you. Write to reclaimera@gmail.com and we will respond within a reasonable time.') + \
 legal_section('Contact', 'Reclaim Era, an initiative of Lamp Educational and Charitable Trust (LEACT), Kogilu, Yelahanka, Bengaluru, Karnataka. Email: reclaimera@gmail.com. Phone: +91 81520 20145.') + \
@@ -1075,7 +1081,7 @@ terms_body = page_hero('<span>Terms &amp; Conditions</span>', 'Terms &amp; <span
 legal_section('Who we are', 'This website is operated by Reclaim Era, an initiative of Lamp Educational and Charitable Trust (LEACT), Bengaluru, Karnataka, India.') + \
 legal_section('Using this site', 'You agree to use this site lawfully and to provide accurate information in our forms. We may update content, services and these terms from time to time; the version published here applies.') + \
 legal_section('Pickups and campaigns', 'Pickup requests and campaign applications are requests for service and are confirmed by our team over phone or email. The campaign logistics fee (minimum \u20B9500) covers the collection vehicle, crew and materials for a scheduled campaign; it is a service fee and not a donation. Scheduling is subject to our team\u2019s availability and service area.') + \
-legal_section('Payments', 'The campaign logistics fee is paid directly by UPI to the Trust\u2019s UPI ID (lampeducational@ybl). Keep the UPI transaction reference (UTR) from your payment app; applications are confirmed once the payment is verified against our account. Refunds are governed by our Refund &amp; Cancellation Policy.') + \
+legal_section('Payments', 'The campaign logistics fee (minimum \u20B9500) is paid securely through Razorpay (UPI, cards or netbanking). Applications are confirmed once the payment is received. Refunds are governed by our Refund &amp; Cancellation Policy.') + \
 legal_section('Donations', 'Monetary donations to LEACT are eligible for exemption under sections 12A and 80G of the Income Tax Act; receipts are issued on request. Donated goods are sorted at our discretion into reuse, upcycling or recycling.') + \
 legal_section('Content and branding', 'The Reclaim Era name, logo and site content belong to LEACT and may not be reproduced without permission, except for fair, non-commercial reference.') + \
 legal_section('Liability', 'We provide this site and our services with care but without warranties. To the extent permitted by law, LEACT is not liable for indirect or consequential losses arising from use of the site.') + \
@@ -1089,8 +1095,8 @@ refund_body = page_hero('<span>Refund &amp; Cancellation Policy</span>', 'Refund
 legal_section('The logistics fee', 'The logistics fee (minimum \u20B9500) paid with a campaign application covers the collection vehicle, crew and materials for your scheduled campaign day. It is a service fee, not a donation.') + \
 legal_section('If you cancel', 'Cancel at least 48 hours before your scheduled campaign date and we will refund the fee in full. Cancellations within 48 hours of the scheduled date are not refundable, because the vehicle and crew are already committed.') + \
 legal_section('If we cancel or cannot serve you', 'If we cannot schedule your campaign (for example, your location is outside our service area) or we cancel for any reason, you receive a full refund automatically.') + \
-legal_section('How refunds are paid', 'Refunds are sent by UPI or bank transfer to the account the payment came from, normally within 5\u20137 business days of your request being approved.') + \
-legal_section('How to request one', 'Email reclaimera@gmail.com or call +91 81520 20145 with your UPI transaction reference (UTR) and the application reference shown on your success screen.') + \
+legal_section('How refunds are paid', 'Refunds are issued to your original payment method through Razorpay, normally within 5\u20137 business days of your request being approved.') + \
+legal_section('How to request one', 'Email reclaimera@gmail.com or call +91 81520 20145 with the Razorpay payment reference from the receipt Razorpay emails you.') + \
 '</div></div></section>'
 
 notfound_body = '''
@@ -1111,21 +1117,12 @@ CAMPAIGN_JS = r"""
 <script>
 (function () {
   "use strict";
-
-  /* CHANGE ME after deploying the backend (see backend/README.md) */
-  var API_BASE = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-    ? "http://localhost:5001"
-    : "https://REPLACE-WITH-DEPLOYED-BACKEND";
-
+  var FS_ENDPOINT = "https://formsubmit.co/ajax/reclaimera@gmail.com";
   var form = document.getElementById("campaignForm");
   if (!form) return;
 
   var state = {};
-
   function q(id) { return document.getElementById(id); }
-  function esc(t) {
-    return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  }
 
   function setStep(n) {
     form.querySelectorAll(".form-step").forEach(function (el) {
@@ -1139,24 +1136,11 @@ CAMPAIGN_JS = r"""
     hideError();
     form.scrollIntoView({ behavior: "smooth", block: "start" });
   }
-
-  function markInvalid(id, bad) {
-    q(id).closest(".field").classList.toggle("invalid", bad);
-  }
+  function markInvalid(id, bad) { q(id).closest(".field").classList.toggle("invalid", bad); }
+  function esc(t){return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
   var PHONE_RE = /^(\+91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}$/;
   var EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-  var UTR_RE = /^[A-Za-z0-9]{10,23}$/;
-  var UPI_BASE = "upi://pay?pa=lampeducational@ybl&pn=LAMP%20Educational%20Trust&cu=INR&tn=Reclaim%20Era%20campaign%20fee";
-
-  function updUpiLink() {
-    var a = parseInt(q("cf-amount").value, 10);
-    var ok = !isNaN(a) && a >= 500;
-    q("upiOpen").href = ok ? UPI_BASE + "&am=" + a : UPI_BASE;
-    q("upiOpen").textContent = "Open UPI app & pay " + (ok ? "\u20B9" + a : "\u20B9500+");
-  }
-  q("cf-amount").addEventListener("input", updUpiLink);
-  updUpiLink();
 
   q("cf-type").addEventListener("change", function () {
     document.getElementById("otherWrap").style.display = this.value === "Other" ? "" : "none";
@@ -1176,7 +1160,6 @@ CAMPAIGN_JS = r"""
     markInvalid("cf-address", state.address.length < 10); ok = ok && state.address.length >= 10;
     return ok;
   }
-
   function validateStep2() {
     var ok = true;
     state.contact_name = q("cf-contact").value.trim();
@@ -1187,7 +1170,6 @@ CAMPAIGN_JS = r"""
     markInvalid("cf-email", !EMAIL_RE.test(state.contact_email)); ok = ok && EMAIL_RE.test(state.contact_email);
     return ok;
   }
-
   function buildReview() {
     q("reviewDl").innerHTML =
       "<dt>Location type</dt><dd>" + esc(state.location_type + (state.location_other ? " - " + state.location_other : "")) + "</dd>" +
@@ -1203,67 +1185,45 @@ CAMPAIGN_JS = r"""
   q("next2").addEventListener("click", function () { if (validateStep2()) { buildReview(); setStep(3); } });
   q("back3").addEventListener("click", function () { setStep(2); });
 
-  q("copyUpi").addEventListener("click", function () {
-    navigator.clipboard.writeText("lampeducational@ybl").then(function () {
-      q("copyUpi").textContent = "Copied!";
-      setTimeout(function () { q("copyUpi").textContent = "Copy"; }, 1600);
-    });
-  });
-
-  var payBtn = q("paySubmit");
-  function setBusy(b) {
-    payBtn.disabled = b;
-    payBtn.textContent = b ? "Submitting\u2026" : "Submit Application";
-  }
-  function showError(msg) {
-    var box = q("campaignError");
-    box.querySelector("[data-msg]").textContent = msg;
-    box.classList.add("show");
-  }
+  function showError(msg) { var b = q("campaignError"); b.querySelector("[data-msg]").textContent = msg; b.classList.add("show"); }
   function hideError() { q("campaignError").classList.remove("show"); }
-
-  function showSuccess(refId) {
+  function showSuccess() {
     form.style.display = "none";
     document.querySelector(".steps-nav").style.display = "none";
-    q("successRef").textContent = "Application reference: " + refId;
     q("successPanel").style.display = "block";
     q("successPanel").scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
+  var payLink = q("paySubmit");
+  payLink.addEventListener("click", function (e) {
     hideError();
-    if (!validateStep1() || !validateStep2()) { setStep(!validateStep1() ? 1 : 2); return; }
-    state.amount_paid = parseInt(q("cf-amount").value, 10);
-    var amtOk = !isNaN(state.amount_paid) && state.amount_paid >= 500 && state.amount_paid <= 100000;
-    markInvalid("cf-amount", !amtOk);
-    state.upi_utr = q("cf-utr").value.trim();
-    var utrOk = UTR_RE.test(state.upi_utr);
-    markInvalid("cf-utr", !utrOk);
-    if (!amtOk || !utrOk) return;
-    setBusy(true);
-
-    fetch(API_BASE + "/api/campaign/submit-upi", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(state)
-    })
-      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
-      .then(function (r) {
-        if (!r.ok || !r.d.ok) {
-          var msgs = r.d && r.d.errors ? Object.values(r.d.errors).join(" ") : (r.d && r.d.error);
-          throw new Error(msgs || "Could not submit the application. Please try again.");
-        }
-        showSuccess(r.d.application_id);
-      })
-      .catch(function (err) {
-        setBusy(false);
-        var m = err && err.message ? err.message : "";
-        if (!m || /fetch|network|load failed/i.test(m)) {
-          m = "Could not reach our server right now. Please try again in a minute, or email reclaimera@gmail.com \u2014 your payment is safe.";
-        }
-        showError(m);
-      });
+    if (!validateStep1() || !validateStep2()) { e.preventDefault(); setStep(!validateStep1() ? 1 : 2); return; }
+    // capture the application by email (pure static, no backend)
+    try {
+      fetch(FS_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          _subject: "New campaign application (reclaimera.in)",
+          location: state.location_type + (state.location_other ? " - " + state.location_other : ""),
+          institution: state.institution_name,
+          address: state.address,
+          coordinator: state.contact_name,
+          phone: state.contact_phone,
+          email: state.contact_email
+        })
+      }).catch(function () {});
+    } catch (_) {}
+    var href = payLink.getAttribute("href") || "";
+    if (href.indexOf("REPLACE_WITH") > -1 || href === "#" || href === "") {
+      // payment link not configured yet: still capture the application
+      e.preventDefault();
+      q("successNote").textContent = "Our team will email you the ₹500 payment link shortly.";
+      showSuccess();
+      return;
+    }
+    // valid Razorpay link opens in a new tab (anchor default); show success here
+    showSuccess();
   });
 })();
 </script>
@@ -1272,7 +1232,7 @@ CAMPAIGN_JS = r"""
 campaign_body = page_hero(
     '<span>Host a Campaign</span>',
     'Donation campaign <span style="color:var(--green-deep)">application.</span>',
-    "Bring a Reclaim Era used-clothes collection drive to your apartment complex, company, campus, store or restaurant. A one-time logistics fee of \u20B9500 or more, paid by UPI, confirms your slot and covers the collection vehicle and crew."
+    "Bring a Reclaim Era used-clothes collection drive to your apartment complex, company, campus, store or restaurant. A one-time logistics fee of \u20B9500 or more, paid securely on Razorpay (UPI, cards or netbanking), confirms your slot and covers the collection vehicle and crew."
 ) + f'''
 <section class="section" style="padding-top:30px">
   <div class="wrap two-col form-layout">
@@ -1330,37 +1290,15 @@ campaign_body = page_hero(
           </div>
 
           <div class="form-step" data-step="3">
-            <h3 style="font-size:1.4rem;margin-bottom:22px">Review &amp; pay by UPI</h3>
+            <h3 style="font-size:1.4rem;margin-bottom:22px">Review &amp; submit</h3>
             <div class="review-list"><dl id="reviewDl"></dl></div>
-            <div class="fee-row"><span>Minimum logistics fee</span><span class="amt">\u20B9500</span></div>
-            <div class="form-grid" style="margin-top:14px">
-              <div class="field full"><label for="cf-amount">Amount you are paying (\u20B9) <span>*</span></label>
-                <input id="cf-amount" type="number" min="500" step="1" value="500" inputmode="numeric">
-                <p class="field-error">The minimum logistics fee is \u20B9500.</p>
-                <p class="hint">\u20B9500 is the minimum \u00B7 you are welcome to contribute more.</p>
-              </div>
-            </div>
-            <div class="upi-box">
-              <div class="upi-qr"><img src="assets/upi-qr.png" alt="UPI QR code to pay \u20B9500 to lampeducational@ybl" loading="lazy"></div>
-              <div class="upi-info">
-                <p class="upi-title">Pay with any UPI app</p>
-                <p>Scan the QR with GPay, PhonePe or Paytm and enter your amount (\u20B9500 minimum). On your phone, just tap the button below.</p>
-                <a class="btn btn-green upi-open" id="upiOpen" href="upi://pay?pa=lampeducational@ybl&amp;pn=LAMP%20Educational%20Trust&amp;cu=INR&amp;tn=Reclaim%20Era%20campaign%20fee">Open UPI app &amp; pay \u20B9500</a>
-                <div class="upi-id-row"><span>UPI ID: <b>lampeducational@ybl</b></span><button type="button" class="btn btn-outline btn-sm" id="copyUpi">Copy</button></div>
-              </div>
-            </div>
-            <div class="form-grid" style="margin-top:16px">
-              <div class="field full"><label for="cf-utr">UPI transaction / reference number (UTR) <span>*</span></label>
-                <input id="cf-utr" type="text" placeholder="e.g. 415912345678" autocomplete="off">
-                <p class="field-error">Enter the reference / UTR number from your UPI app.</p>
-                <p class="hint">After paying, open the transaction in your UPI app \u2014 the 12-digit UTR / reference number is shown in its details.</p>
-              </div>
-            </div>
+            <div class="fee-row"><span>Logistics fee (minimum)</span><span class="amt">\u20B9500</span></div>
+            <p class="pay-note">When you press the button, your application is sent to our team and the secure Razorpay payment page opens in a new tab. Complete the \u20B9500 fee there \u2014 UPI, cards and netbanking are all accepted (\u20B9500 minimum, more is welcome).</p>
             <div class="step-actions">
               <button type="button" class="btn btn-outline" id="back3">Back</button>
-              <button type="submit" class="btn btn-green btn-lg" id="paySubmit">Submit Application</button>
+              <a class="btn btn-green btn-lg" id="paySubmit" href="{RZP_CAMPAIGN}" target="_blank" rel="noopener noreferrer" data-razorpay>Pay \u20B9500 via Razorpay &#8599;</a>
             </div>
-          </div>
+          </div>          </div>
 
           <div class="form-error" id="campaignError" role="alert"><span data-msg></span></div>
         </form>
@@ -1368,9 +1306,8 @@ campaign_body = page_hero(
         <div class="success-panel" id="successPanel" style="display:none">
           <div class="big-tick">{I["check"]}</div>
           <h3>Application received!</h3>
-          <p>Our team will verify your UPI payment and call your coordinator within 48 hours to fix the campaign date.</p>
-          <p>Keep your UPI reference handy in case we need to match the payment.</p>
-          <span class="ref" id="successRef"></span>
+          <p>Complete the \u20B9500 fee in the Razorpay tab that just opened. <span id="successNote"></span></p>
+          <p>Once we see your payment, our team calls your coordinator within 48 hours to fix the campaign date.</p>
         </div>
       </div>
     </div>

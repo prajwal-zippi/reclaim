@@ -146,4 +146,32 @@
 
   /* current year */
   document.querySelectorAll("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
+
+  /* Razorpay payment links: friendly guard until the real links are pasted in.
+     The campaign page's pay button (#paySubmit) handles itself, so skip it here. */
+  function reToast(msg) {
+    var t = document.createElement("div");
+    t.textContent = msg;
+    t.style.cssText =
+      "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:300;" +
+      "background:#17251E;color:#FAF6EE;padding:14px 20px;border-radius:12px;" +
+      "box-shadow:0 14px 40px -12px rgba(0,0,0,.4);font:600 14px/1.4 Inter,sans-serif;" +
+      "max-width:90%;text-align:center";
+    document.body.appendChild(t);
+    setTimeout(function () {
+      t.style.transition = "opacity .4s";
+      t.style.opacity = "0";
+      setTimeout(function () { t.remove(); }, 400);
+    }, 4200);
+  }
+  document.querySelectorAll("a[data-razorpay]").forEach(function (a) {
+    a.addEventListener("click", function (e) {
+      if (a.id === "paySubmit") return;
+      var href = a.getAttribute("href") || "";
+      if (href.indexOf("REPLACE_WITH") > -1 || href === "#" || href === "") {
+        e.preventDefault();
+        reToast("Online payments open shortly. Please email reclaimera@gmail.com or call +91 81520 20145.");
+      }
+    });
+  });
 })();

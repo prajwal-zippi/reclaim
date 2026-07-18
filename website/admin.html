@@ -181,7 +181,9 @@
 
   /* restore an existing session if the token is still valid */
   var savedToken = sessionStorage.getItem(TOKEN_KEY);
-  if (savedToken) {
+  if (savedToken === "local") {
+    gate.remove();  // pure-static session
+  } else if (savedToken) {
     fetch(API_BASE + "/api/admin/check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -209,7 +211,17 @@
         }
       })
       .catch(function () {
-        gateError("Could not reach the server. The dashboard needs the backend running (see backend/README.md).");
+        /* Pure-static fallback: no backend running. Accept a local passcode so the
+           dashboard still works on static hosting. CHANGE THIS passcode. Note: a
+           client-side passcode is convenience-only (readable in source) — keep the
+           /admin.html URL private. Run the backend for real server-verified login. */
+        var FALLBACK_PASSCODE = "Reclaim@2026";
+        if (document.getElementById("passInput").value === FALLBACK_PASSCODE) {
+          sessionStorage.setItem(TOKEN_KEY, "local");
+          gate.remove();
+        } else {
+          gateError("That password is not right. Try again.");
+        }
       });
   };
   document.getElementById("passInput").addEventListener("keydown", function (e) {
