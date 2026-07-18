@@ -143,6 +143,7 @@ def header(active=""):
       <li><a{cls("zero")} href="zero-waste-certification.html">Zero Waste</a></li>
       <li><a{cls("involved")} href="get-involved.html">Get Involved</a></li>
       <li><a{cls("resources")} href="resources.html">Resources</a></li>
+      <li><a{cls("gallery")} href="gallery.html">Gallery</a></li>
       <li><a{cls("contact")} href="contact.html">Contact</a></li>
     </ul>
     <div class="header-cta">
@@ -198,6 +199,7 @@ FOOTER = f'''
           <li><a href="campaign-application.html">Host a Campaign</a></li>
           <li><a href="zero-waste-certification.html">Zero Waste Certification</a></li>
           <li><a href="resources.html">Resources</a></li>
+          <li><a href="gallery.html">Gallery &amp; Events</a></li>
           <li><a href="contact.html">Contact</a></li>
         </ul>
       </div>
@@ -1389,6 +1391,57 @@ campaign_body = page_hero(
 </section>
 ''' + CAMPAIGN_JS
 
+
+# ================================================================ GALLERY & EVENTS
+GALLERY_JS = """
+<script src="js/gallery-data.js"></script>
+<script>
+(function () {
+  "use strict";
+  function esc(t){return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\"/g,"&quot;");}
+  var data = (window.RE_GALLERY || []).filter(function(x){ return x && (x.title || x.imageUrl); });
+  var grid = document.getElementById("galleryGrid");
+  var empty = document.getElementById("galleryEmpty");
+  if (!grid) return;
+  if (!data.length) { if (empty) empty.style.display = "block"; return; }
+  grid.innerHTML = data.map(function (ev) {
+    var media = ev.imageUrl
+      ? '<img src="' + esc(ev.imageUrl) + '" alt="' + esc(ev.title) + '" loading="lazy">'
+      : '<div class="gal-ph"><span>Photo coming soon</span></div>';
+    var date = ev.date ? '<span class="gal-date">' + esc(ev.date) + '</span>' : '';
+    var attrs = ev.imageUrl ? ' has-img" data-full="' + esc(ev.imageUrl) + '" data-title="' + esc(ev.title) + '"' : '"';
+    return '<article class="gal-card' + attrs + '>'
+      + '<div class="gal-media">' + media + date + '</div>'
+      + '<div class="gal-body"><h3>' + esc(ev.title) + '</h3>'
+      + (ev.description ? '<p>' + esc(ev.description) + '</p>' : '') + '</div></article>';
+  }).join("");
+  var lb = document.getElementById("galLightbox");
+  grid.addEventListener("click", function (e) {
+    var card = e.target.closest(".gal-card.has-img");
+    if (!card) return;
+    lb.querySelector("img").src = card.getAttribute("data-full");
+    lb.querySelector(".gal-lb-cap").textContent = card.getAttribute("data-title") || "";
+    lb.classList.add("open");
+  });
+  if (lb) lb.addEventListener("click", function () { lb.classList.remove("open"); });
+})();
+</script>
+"""
+
+gallery_body = page_hero(
+    '<span>Gallery &amp; Events</span>',
+    'Moments from the <span style="color:var(--green-deep)">field.</span>',
+    "Collection drives, EmpowHer workshops, school sessions and volunteer days \u2014 a look at Reclaim Era in action across Bengaluru."
+) + '''
+<section class="section" style="padding-top:30px">
+  <div class="wrap">
+    <div class="gallery-grid" id="galleryGrid"></div>
+    <p id="galleryEmpty" style="display:none;text-align:center;color:var(--ink-soft);padding:40px 0">Our gallery is coming soon. Follow us on <a href="https://www.instagram.com/reclaimera.official" target="_blank" rel="noopener" style="color:var(--green-deep);text-decoration:underline">Instagram</a> for the latest.</p>
+  </div>
+</section>
+<div class="gal-lightbox" id="galLightbox"><span class="gal-lb-close" aria-hidden="true">&times;</span><img src="" alt=""><p class="gal-lb-cap"></p></div>
+''' + GALLERY_JS
+
 # ================================================================ write files
 PAGES = {
 "index.html": ("Reclaim Era — Waste to Wisdom | Upcycle, Educate, Empower Bengaluru",
@@ -1437,6 +1490,7 @@ PAGES = {
 "terms.html": ("Terms & Conditions | Reclaim Era", "The terms that apply when you use the Reclaim Era website and services.", "", terms_body, ""),
 "refund-policy.html": ("Refund & Cancellation Policy | Reclaim Era", "Refunds and cancellations for the Reclaim Era campaign logistics fee.", "", refund_body, ""),
 "404.html": ("Page not found | Reclaim Era", "This page does not exist. Head back to the Reclaim Era home page.", "", notfound_body, ""),
+"gallery.html": ("Gallery & Events | Reclaim Era", "Photos from Reclaim Era collection drives, EmpowHer workshops, school sessions and volunteer days across Bengaluru.", "gallery", gallery_body, ""),
 }
 
 for fname, (title, desc, active, body, extra) in PAGES.items():

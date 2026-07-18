@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Page not found | Reclaim Era</title>
-<meta name="description" content="This page does not exist. Head back to the Reclaim Era home page.">
-<meta property="og:title" content="Page not found | Reclaim Era">
-<meta property="og:description" content="This page does not exist. Head back to the Reclaim Era home page.">
+<title>Gallery & Events | Reclaim Era</title>
+<meta name="description" content="Photos from Reclaim Era collection drives, EmpowHer workshops, school sessions and volunteer days across Bengaluru.">
+<meta property="og:title" content="Gallery & Events | Reclaim Era">
+<meta property="og:description" content="Photos from Reclaim Era collection drives, EmpowHer workshops, school sessions and volunteer days across Bengaluru.">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +37,7 @@
       <li><a class="nav-link" href="zero-waste-certification.html">Zero Waste</a></li>
       <li><a class="nav-link" href="get-involved.html">Get Involved</a></li>
       <li><a class="nav-link" href="resources.html">Resources</a></li>
-      <li><a class="nav-link" href="gallery.html">Gallery</a></li>
+      <li><a class="nav-link active" href="gallery.html">Gallery</a></li>
       <li><a class="nav-link" href="contact.html">Contact</a></li>
     </ul>
     <div class="header-cta">
@@ -56,17 +56,55 @@
   <a href="shop.html" class="mb-shop">Shop</a>
 </div>
 <main>
-<section class="section" style="text-align:center;padding-top:90px">
-  <div class="wrap" style="max-width:560px">
-    <p style="font-family:var(--font-display);font-weight:800;font-size:5rem;line-height:1;color:var(--green)">404</p>
-    <h1 style="font-size:2rem;margin:14px 0 12px">This page took the recycling route.</h1>
-    <p style="color:var(--ink-soft);margin-bottom:28px">The link you followed does not exist any more. Everything useful is one tap away:</p>
-    <div class="hero-ctas" style="justify-content:center">
-      <a href="index.html" class="btn btn-green">Go to the Home page</a>
-      <a href="request-pickup.html" class="btn btn-outline">Request a Pick-Up</a>
-    </div>
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Gallery &amp; Events</span></nav>
+    <h1 class="reveal">Moments from the <span style="color:var(--green-deep)">field.</span></h1>
+    <p class="lede reveal reveal-d1">Collection drives, EmpowHer workshops, school sessions and volunteer days — a look at Reclaim Era in action across Bengaluru.</p>
+    
   </div>
-</section></main>
+</section>
+<section class="section" style="padding-top:30px">
+  <div class="wrap">
+    <div class="gallery-grid" id="galleryGrid"></div>
+    <p id="galleryEmpty" style="display:none;text-align:center;color:var(--ink-soft);padding:40px 0">Our gallery is coming soon. Follow us on <a href="https://www.instagram.com/reclaimera.official" target="_blank" rel="noopener" style="color:var(--green-deep);text-decoration:underline">Instagram</a> for the latest.</p>
+  </div>
+</section>
+<div class="gal-lightbox" id="galLightbox"><span class="gal-lb-close" aria-hidden="true">&times;</span><img src="" alt=""><p class="gal-lb-cap"></p></div>
+
+<script src="js/gallery-data.js"></script>
+<script>
+(function () {
+  "use strict";
+  function esc(t){return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");}
+  var data = (window.RE_GALLERY || []).filter(function(x){ return x && (x.title || x.imageUrl); });
+  var grid = document.getElementById("galleryGrid");
+  var empty = document.getElementById("galleryEmpty");
+  if (!grid) return;
+  if (!data.length) { if (empty) empty.style.display = "block"; return; }
+  grid.innerHTML = data.map(function (ev) {
+    var media = ev.imageUrl
+      ? '<img src="' + esc(ev.imageUrl) + '" alt="' + esc(ev.title) + '" loading="lazy">'
+      : '<div class="gal-ph"><span>Photo coming soon</span></div>';
+    var date = ev.date ? '<span class="gal-date">' + esc(ev.date) + '</span>' : '';
+    var attrs = ev.imageUrl ? ' has-img" data-full="' + esc(ev.imageUrl) + '" data-title="' + esc(ev.title) + '"' : '"';
+    return '<article class="gal-card' + attrs + '>'
+      + '<div class="gal-media">' + media + date + '</div>'
+      + '<div class="gal-body"><h3>' + esc(ev.title) + '</h3>'
+      + (ev.description ? '<p>' + esc(ev.description) + '</p>' : '') + '</div></article>';
+  }).join("");
+  var lb = document.getElementById("galLightbox");
+  grid.addEventListener("click", function (e) {
+    var card = e.target.closest(".gal-card.has-img");
+    if (!card) return;
+    lb.querySelector("img").src = card.getAttribute("data-full");
+    lb.querySelector(".gal-lb-cap").textContent = card.getAttribute("data-title") || "";
+    lb.classList.add("open");
+  });
+  if (lb) lb.addEventListener("click", function () { lb.classList.remove("open"); });
+})();
+</script>
+</main>
 
 <footer class="footer">
   <div class="footer-cta">
