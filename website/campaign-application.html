@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Host a Donation Campaign | Reclaim Era</title>
-<meta name="description" content="Apply to host a Reclaim Era collection campaign at your apartment, school, college or business. ₹500 logistics fee, paid securely online.">
+<meta name="description" content="Apply to host a Reclaim Era collection campaign at your apartment, school, college or business. Minimum ₹500 logistics fee, paid by UPI.">
 <meta property="og:title" content="Host a Donation Campaign | Reclaim Era">
-<meta property="og:description" content="Apply to host a Reclaim Era collection campaign at your apartment, school, college or business. ₹500 logistics fee, paid securely online.">
+<meta property="og:description" content="Apply to host a Reclaim Era collection campaign at your apartment, school, college or business. Minimum ₹500 logistics fee, paid by UPI.">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,7 +59,7 @@
   <div class="wrap">
     <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span class="sep">/</span><span>Host a Campaign</span></nav>
     <h1 class="reveal">Donation campaign <span style="color:var(--green-deep)">application.</span></h1>
-    <p class="lede reveal reveal-d1">Bring a Reclaim Era used-clothes collection drive to your apartment complex, company, campus, store or restaurant. A one-time ₹500 logistics fee, paid by UPI, confirms your slot and covers the collection vehicle and crew.</p>
+    <p class="lede reveal reveal-d1">Bring a Reclaim Era used-clothes collection drive to your apartment complex, company, campus, store or restaurant. A one-time logistics fee of ₹500 or more, paid by UPI, confirms your slot and covers the collection vehicle and crew.</p>
     
   </div>
 </section>
@@ -121,13 +121,20 @@
           <div class="form-step" data-step="3">
             <h3 style="font-size:1.4rem;margin-bottom:22px">Review &amp; pay by UPI</h3>
             <div class="review-list"><dl id="reviewDl"></dl></div>
-            <div class="fee-row"><span>Logistics fee</span><span class="amt">₹500</span></div>
+            <div class="fee-row"><span>Minimum logistics fee</span><span class="amt">₹500</span></div>
+            <div class="form-grid" style="margin-top:14px">
+              <div class="field full"><label for="cf-amount">Amount you are paying (₹) <span>*</span></label>
+                <input id="cf-amount" type="number" min="500" step="1" value="500" inputmode="numeric">
+                <p class="field-error">The minimum logistics fee is ₹500.</p>
+                <p class="hint">₹500 is the minimum · you are welcome to contribute more.</p>
+              </div>
+            </div>
             <div class="upi-box">
               <div class="upi-qr"><img src="assets/upi-qr.png" alt="UPI QR code to pay ₹500 to lampeducational@ybl" loading="lazy"></div>
               <div class="upi-info">
-                <p class="upi-title">Pay ₹500 with any UPI app</p>
-                <p>Scan the QR with GPay, PhonePe or Paytm. On your phone, just tap the button below.</p>
-                <a class="btn btn-green upi-open" href="upi://pay?pa=lampeducational@ybl&amp;pn=LAMP%20Educational%20Trust&amp;am=500&amp;cu=INR&amp;tn=Reclaim%20Era%20campaign%20fee">Open UPI app &amp; pay ₹500</a>
+                <p class="upi-title">Pay with any UPI app</p>
+                <p>Scan the QR with GPay, PhonePe or Paytm and enter your amount (₹500 minimum). On your phone, just tap the button below.</p>
+                <a class="btn btn-green upi-open" id="upiOpen" href="upi://pay?pa=lampeducational@ybl&amp;pn=LAMP%20Educational%20Trust&amp;cu=INR&amp;tn=Reclaim%20Era%20campaign%20fee">Open UPI app &amp; pay ₹500</a>
                 <div class="upi-id-row"><span>UPI ID: <b>lampeducational@ybl</b></span><button type="button" class="btn btn-outline btn-sm" id="copyUpi">Copy</button></div>
               </div>
             </div>
@@ -150,7 +157,7 @@
         <div class="success-panel" id="successPanel" style="display:none">
           <div class="big-tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
           <h3>Application received!</h3>
-          <p>Our team will verify your ₹500 UPI payment and call your coordinator within 48 hours to fix the campaign date.</p>
+          <p>Our team will verify your UPI payment and call your coordinator within 48 hours to fix the campaign date.</p>
           <p>Keep your UPI reference handy in case we need to match the payment.</p>
           <span class="ref" id="successRef"></span>
         </div>
@@ -211,6 +218,16 @@
   var PHONE_RE = /^(\+91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}$/;
   var EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
   var UTR_RE = /^[A-Za-z0-9]{10,23}$/;
+  var UPI_BASE = "upi://pay?pa=lampeducational@ybl&pn=LAMP%20Educational%20Trust&cu=INR&tn=Reclaim%20Era%20campaign%20fee";
+
+  function updUpiLink() {
+    var a = parseInt(q("cf-amount").value, 10);
+    var ok = !isNaN(a) && a >= 500;
+    q("upiOpen").href = ok ? UPI_BASE + "&am=" + a : UPI_BASE;
+    q("upiOpen").textContent = "Open UPI app & pay " + (ok ? "\u20B9" + a : "\u20B9500+");
+  }
+  q("cf-amount").addEventListener("input", updUpiLink);
+  updUpiLink();
 
   q("cf-type").addEventListener("change", function () {
     document.getElementById("otherWrap").style.display = this.value === "Other" ? "" : "none";
@@ -288,10 +305,13 @@
     e.preventDefault();
     hideError();
     if (!validateStep1() || !validateStep2()) { setStep(!validateStep1() ? 1 : 2); return; }
+    state.amount_paid = parseInt(q("cf-amount").value, 10);
+    var amtOk = !isNaN(state.amount_paid) && state.amount_paid >= 500 && state.amount_paid <= 100000;
+    markInvalid("cf-amount", !amtOk);
     state.upi_utr = q("cf-utr").value.trim();
     var utrOk = UTR_RE.test(state.upi_utr);
     markInvalid("cf-utr", !utrOk);
-    if (!utrOk) return;
+    if (!amtOk || !utrOk) return;
     setBusy(true);
 
     fetch(API_BASE + "/api/campaign/submit-upi", {
@@ -342,7 +362,7 @@
           <span class="sdg s4">SDG 4</span><span class="sdg s8">SDG 8</span><span class="sdg s12">SDG 12</span><span class="sdg s13">SDG 13</span>
         </div>
         <div class="social-row">
-          <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".9" fill="currentColor" stroke="none"/></svg></a>
+          <a href="https://www.instagram.com/reclaimera.official" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".9" fill="currentColor" stroke="none"/></svg></a>
           <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 21v-7h2.8l.5-3.3h-3.3V8.5c0-1 .3-1.7 1.8-1.7h1.6V3.9c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.4-4 4.1v2.8H8.5V14h2.9v7Z"/></svg></a>
           <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 10.5V17M8 7.2v.1M12 17v-3.8c0-1.5 4-2.1 4 0V17"/></svg></a>
         </div>

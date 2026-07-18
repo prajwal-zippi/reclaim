@@ -184,7 +184,7 @@ FOOTER = f'''
           <span class="sdg s4">SDG 4</span><span class="sdg s8">SDG 8</span><span class="sdg s12">SDG 12</span><span class="sdg s13">SDG 13</span>
         </div>
         <div class="social-row">
-          <a href="#" aria-label="Instagram">{I["ig"]}</a>
+          <a href="https://www.instagram.com/reclaimera.official" target="_blank" rel="noopener" aria-label="Instagram">{I["ig"]}</a>
           <a href="#" aria-label="Facebook">{I["fb"]}</a>
           <a href="#" aria-label="LinkedIn">{I["li"]}</a>
         </div>
@@ -930,7 +930,7 @@ involved_body = page_hero(
         <div class="icon-chip bg-green-t">{I["truck"]}</div>
         <span class="metric">Bring us to you</span>
         <h3>Host a Campaign</h3>
-        <p>Run a used-clothes collection drive at your apartment complex, company, campus or store. We bring the crew, bins and vehicle; a one-time \u20B9500 logistics fee confirms your slot.</p>
+        <p>Run a used-clothes collection drive at your apartment complex, company, campus or store. We bring the crew, bins and vehicle; a minimum \u20B9500 logistics fee confirms your slot.</p>
         <a href="campaign-application.html" class="btn btn-green" style="margin-top:auto;align-self:flex-start">Apply to Host {I["arrow"]}</a>
       </div>
       <div class="init-card t-blue reveal reveal-d1" id="volunteer">
@@ -1059,9 +1059,9 @@ def legal_section(title, body):
 privacy_body = page_hero('<span>Privacy Policy</span>', 'Privacy <span style="color:var(--green-deep)">policy.</span>',
     'How Reclaim Era (Lamp Educational and Charitable Trust) collects, uses and protects your information.') + '''
 <section class="section" style="padding-top:10px"><div class="wrap" style="max-width:820px"><div class="prose">''' + \
-legal_section('What we collect', 'When you use our forms we collect the details you type in: your name, phone number, email address, pickup or campaign address, and your message. When you pay the campaign logistics fee, the payment is processed by Razorpay; we receive a payment reference and status, and we never see or store your card, UPI or bank details.') + \
+legal_section('What we collect', 'When you use our forms we collect the details you type in: your name, phone number, email address, pickup or campaign address, and your message. The campaign logistics fee is paid directly from your UPI app to the Trust\u2019s UPI ID; we store only the UPI transaction reference (UTR) that you provide, so we can match the payment. We never see or store your card or bank details.') + \
 legal_section('How we use it', 'We use your details only to run our services: scheduling pickups, coordinating campaigns, responding to enquiries, issuing receipts, and sending updates you have asked for. We do not sell or rent your information to anyone.') + \
-legal_section('Where it goes', 'Form submissions are delivered to our team by email. Campaign applications and their payment status are stored in our secure database. Payments are handled by Razorpay under their own privacy policy. We share information with no other third parties unless the law requires it.') + \
+legal_section('Where it goes', 'Form submissions are delivered to our team by email. Campaign applications and their payment status are stored in our secure database. UPI payments go directly to the Trust\u2019s bank account through your own UPI app. We share information with no third parties unless the law requires it.') + \
 legal_section('Cookies and tracking', 'This site does not use advertising cookies. Local storage in your browser is used only for site functionality.') + \
 legal_section('Your rights', 'You can ask us at any time to see, correct or delete the information we hold about you. Write to reclaimera@gmail.com and we will respond within a reasonable time.') + \
 legal_section('Contact', 'Reclaim Era, an initiative of Lamp Educational and Charitable Trust (LEACT), Kogilu, Yelahanka, Bengaluru, Karnataka. Email: reclaimera@gmail.com. Phone: +91 81520 20145.') + \
@@ -1072,8 +1072,8 @@ terms_body = page_hero('<span>Terms &amp; Conditions</span>', 'Terms &amp; <span
 <section class="section" style="padding-top:10px"><div class="wrap" style="max-width:820px"><div class="prose">''' + \
 legal_section('Who we are', 'This website is operated by Reclaim Era, an initiative of Lamp Educational and Charitable Trust (LEACT), Bengaluru, Karnataka, India.') + \
 legal_section('Using this site', 'You agree to use this site lawfully and to provide accurate information in our forms. We may update content, services and these terms from time to time; the version published here applies.') + \
-legal_section('Pickups and campaigns', 'Pickup requests and campaign applications are requests for service and are confirmed by our team over phone or email. The campaign logistics fee of \u20B9500 covers the collection vehicle, crew and materials for a scheduled campaign; it is a service fee and not a donation. Scheduling is subject to our team\u2019s availability and service area.') + \
-legal_section('Payments', 'Online payments are processed by Razorpay. By paying you agree to Razorpay\u2019s terms. Refunds are governed by our Refund &amp; Cancellation Policy.') + \
+legal_section('Pickups and campaigns', 'Pickup requests and campaign applications are requests for service and are confirmed by our team over phone or email. The campaign logistics fee (minimum \u20B9500) covers the collection vehicle, crew and materials for a scheduled campaign; it is a service fee and not a donation. Scheduling is subject to our team\u2019s availability and service area.') + \
+legal_section('Payments', 'The campaign logistics fee is paid directly by UPI to the Trust\u2019s UPI ID (lampeducational@ybl). Keep the UPI transaction reference (UTR) from your payment app; applications are confirmed once the payment is verified against our account. Refunds are governed by our Refund &amp; Cancellation Policy.') + \
 legal_section('Donations', 'Monetary donations to LEACT are eligible for exemption under sections 12A and 80G of the Income Tax Act; receipts are issued on request. Donated goods are sorted at our discretion into reuse, upcycling or recycling.') + \
 legal_section('Content and branding', 'The Reclaim Era name, logo and site content belong to LEACT and may not be reproduced without permission, except for fair, non-commercial reference.') + \
 legal_section('Liability', 'We provide this site and our services with care but without warranties. To the extent permitted by law, LEACT is not liable for indirect or consequential losses arising from use of the site.') + \
@@ -1082,13 +1082,13 @@ legal_section('Contact', 'Questions about these terms: reclaimera@gmail.com \u00
 '</div></div></section>'
 
 refund_body = page_hero('<span>Refund &amp; Cancellation Policy</span>', 'Refund &amp; cancellation <span style="color:var(--green-deep)">policy.</span>',
-    'How refunds work for the \u20B9500 campaign logistics fee.') + '''
+    'How refunds work for the campaign logistics fee (minimum \u20B9500).') + '''
 <section class="section" style="padding-top:10px"><div class="wrap" style="max-width:820px"><div class="prose">''' + \
-legal_section('The logistics fee', 'The \u20B9500 fee paid with a campaign application covers the collection vehicle, crew and materials for your scheduled campaign day. It is a service fee, not a donation.') + \
+legal_section('The logistics fee', 'The logistics fee (minimum \u20B9500) paid with a campaign application covers the collection vehicle, crew and materials for your scheduled campaign day. It is a service fee, not a donation.') + \
 legal_section('If you cancel', 'Cancel at least 48 hours before your scheduled campaign date and we will refund the fee in full. Cancellations within 48 hours of the scheduled date are not refundable, because the vehicle and crew are already committed.') + \
 legal_section('If we cancel or cannot serve you', 'If we cannot schedule your campaign (for example, your location is outside our service area) or we cancel for any reason, you receive a full refund automatically.') + \
-legal_section('How refunds are paid', 'Refunds are issued to your original payment method through Razorpay, normally within 5\u20137 business days of the refund being initiated.') + \
-legal_section('How to request one', 'Email reclaimera@gmail.com or call +91 81520 20145 with your payment reference (shown on your success screen and Razorpay receipt).') + \
+legal_section('How refunds are paid', 'Refunds are sent by UPI or bank transfer to the account the payment came from, normally within 5\u20137 business days of your request being approved.') + \
+legal_section('How to request one', 'Email reclaimera@gmail.com or call +91 81520 20145 with your UPI transaction reference (UTR) and the application reference shown on your success screen.') + \
 '</div></div></section>'
 
 notfound_body = '''
@@ -1145,6 +1145,16 @@ CAMPAIGN_JS = r"""
   var PHONE_RE = /^(\+91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}$/;
   var EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
   var UTR_RE = /^[A-Za-z0-9]{10,23}$/;
+  var UPI_BASE = "upi://pay?pa=lampeducational@ybl&pn=LAMP%20Educational%20Trust&cu=INR&tn=Reclaim%20Era%20campaign%20fee";
+
+  function updUpiLink() {
+    var a = parseInt(q("cf-amount").value, 10);
+    var ok = !isNaN(a) && a >= 500;
+    q("upiOpen").href = ok ? UPI_BASE + "&am=" + a : UPI_BASE;
+    q("upiOpen").textContent = "Open UPI app & pay " + (ok ? "\u20B9" + a : "\u20B9500+");
+  }
+  q("cf-amount").addEventListener("input", updUpiLink);
+  updUpiLink();
 
   q("cf-type").addEventListener("change", function () {
     document.getElementById("otherWrap").style.display = this.value === "Other" ? "" : "none";
@@ -1222,10 +1232,13 @@ CAMPAIGN_JS = r"""
     e.preventDefault();
     hideError();
     if (!validateStep1() || !validateStep2()) { setStep(!validateStep1() ? 1 : 2); return; }
+    state.amount_paid = parseInt(q("cf-amount").value, 10);
+    var amtOk = !isNaN(state.amount_paid) && state.amount_paid >= 500 && state.amount_paid <= 100000;
+    markInvalid("cf-amount", !amtOk);
     state.upi_utr = q("cf-utr").value.trim();
     var utrOk = UTR_RE.test(state.upi_utr);
     markInvalid("cf-utr", !utrOk);
-    if (!utrOk) return;
+    if (!amtOk || !utrOk) return;
     setBusy(true);
 
     fetch(API_BASE + "/api/campaign/submit-upi", {
@@ -1257,7 +1270,7 @@ CAMPAIGN_JS = r"""
 campaign_body = page_hero(
     '<span>Host a Campaign</span>',
     'Donation campaign <span style="color:var(--green-deep)">application.</span>',
-    "Bring a Reclaim Era used-clothes collection drive to your apartment complex, company, campus, store or restaurant. A one-time \u20B9500 logistics fee, paid by UPI, confirms your slot and covers the collection vehicle and crew."
+    "Bring a Reclaim Era used-clothes collection drive to your apartment complex, company, campus, store or restaurant. A one-time logistics fee of \u20B9500 or more, paid by UPI, confirms your slot and covers the collection vehicle and crew."
 ) + f'''
 <section class="section" style="padding-top:30px">
   <div class="wrap two-col form-layout">
@@ -1317,13 +1330,20 @@ campaign_body = page_hero(
           <div class="form-step" data-step="3">
             <h3 style="font-size:1.4rem;margin-bottom:22px">Review &amp; pay by UPI</h3>
             <div class="review-list"><dl id="reviewDl"></dl></div>
-            <div class="fee-row"><span>Logistics fee</span><span class="amt">\u20B9500</span></div>
+            <div class="fee-row"><span>Minimum logistics fee</span><span class="amt">\u20B9500</span></div>
+            <div class="form-grid" style="margin-top:14px">
+              <div class="field full"><label for="cf-amount">Amount you are paying (\u20B9) <span>*</span></label>
+                <input id="cf-amount" type="number" min="500" step="1" value="500" inputmode="numeric">
+                <p class="field-error">The minimum logistics fee is \u20B9500.</p>
+                <p class="hint">\u20B9500 is the minimum \u00B7 you are welcome to contribute more.</p>
+              </div>
+            </div>
             <div class="upi-box">
               <div class="upi-qr"><img src="assets/upi-qr.png" alt="UPI QR code to pay \u20B9500 to lampeducational@ybl" loading="lazy"></div>
               <div class="upi-info">
-                <p class="upi-title">Pay \u20B9500 with any UPI app</p>
-                <p>Scan the QR with GPay, PhonePe or Paytm. On your phone, just tap the button below.</p>
-                <a class="btn btn-green upi-open" href="upi://pay?pa=lampeducational@ybl&amp;pn=LAMP%20Educational%20Trust&amp;am=500&amp;cu=INR&amp;tn=Reclaim%20Era%20campaign%20fee">Open UPI app &amp; pay \u20B9500</a>
+                <p class="upi-title">Pay with any UPI app</p>
+                <p>Scan the QR with GPay, PhonePe or Paytm and enter your amount (\u20B9500 minimum). On your phone, just tap the button below.</p>
+                <a class="btn btn-green upi-open" id="upiOpen" href="upi://pay?pa=lampeducational@ybl&amp;pn=LAMP%20Educational%20Trust&amp;cu=INR&amp;tn=Reclaim%20Era%20campaign%20fee">Open UPI app &amp; pay \u20B9500</a>
                 <div class="upi-id-row"><span>UPI ID: <b>lampeducational@ybl</b></span><button type="button" class="btn btn-outline btn-sm" id="copyUpi">Copy</button></div>
               </div>
             </div>
@@ -1346,7 +1366,7 @@ campaign_body = page_hero(
         <div class="success-panel" id="successPanel" style="display:none">
           <div class="big-tick">{I["check"]}</div>
           <h3>Application received!</h3>
-          <p>Our team will verify your \u20B9500 UPI payment and call your coordinator within 48 hours to fix the campaign date.</p>
+          <p>Our team will verify your UPI payment and call your coordinator within 48 hours to fix the campaign date.</p>
           <p>Keep your UPI reference handy in case we need to match the payment.</p>
           <span class="ref" id="successRef"></span>
         </div>
@@ -1411,7 +1431,7 @@ PAGES = {
     "Get in touch for pickups, CSR partnerships, school programs, or media inquiries. Direct CSR contact: reclaimera@gmail.com",
     "contact", contact_body, ""),
 "campaign-application.html": ("Host a Donation Campaign | Reclaim Era",
-    "Apply to host a Reclaim Era collection campaign at your apartment, school, college or business. \u20B9500 logistics fee, paid securely online.",
+    "Apply to host a Reclaim Era collection campaign at your apartment, school, college or business. Minimum \u20B9500 logistics fee, paid by UPI.",
     "involved", campaign_body, ""),
 "privacy-policy.html": ("Privacy Policy | Reclaim Era", "How Reclaim Era (LEACT) collects, uses and protects your information.", "", privacy_body, ""),
 "terms.html": ("Terms & Conditions | Reclaim Era", "The terms that apply when you use the Reclaim Era website and services.", "", terms_body, ""),

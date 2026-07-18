@@ -9,7 +9,7 @@ cryptographically, and stores verified applications in a `campaign_applications`
 ## Payment model (updated)
 
 **Primary: direct UPI.** The form shows a QR + UPI intent link for the Trust's UPI ID
-(`lampeducational@ybl`), the applicant pays Rs.500 in their UPI app and submits the
+(`lampeducational@ybl`), the applicant pays the fee (minimum Rs.500, validated server-side; the actual amount is stored) and submits the
 UTR reference. `POST /api/campaign/submit-upi` stores the application with status
 `upi_claimed`. **The team must verify the Rs.500 against the bank/UPI statement**
 (match the UTR) before confirming a campaign — a submitted UTR is a claim, not proof.

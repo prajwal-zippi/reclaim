@@ -165,6 +165,15 @@ def submit_upi():
     utr = (data.get("upi_utr") or "").strip()
     if not UTR_RE.match(utr):
         errors["upi_utr"] = "Enter the UPI reference / UTR number shown in your payment app."
+
+    # minimum Rs.500; paying more is welcome (sanity cap to catch typos)
+    try:
+        amount_rupees = int(data.get("amount_paid") or 0)
+    except (TypeError, ValueError):
+        amount_rupees = 0
+    if not (500 <= amount_rupees <= 100000):
+        errors["amount_paid"] = "The minimum logistics fee is Rs.500."
+
     if errors:
         return jsonify({"ok": False, "errors": errors}), 400
 
@@ -183,7 +192,7 @@ def submit_upi():
             (
                 form["location_type"], form["location_other"], form["institution_name"],
                 form["address"], form["contact_name"], form["contact_phone"],
-                form["contact_email"], LOGISTICS_FEE_PAISE, CURRENCY, utr, app_ref,
+                form["contact_email"], amount_rupees * 100, CURRENCY, utr, app_ref,
             ),
         )
 

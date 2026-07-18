@@ -22,7 +22,7 @@ sitemap and content brief in `Reclaim Era_Sitemap Overview.pdf`.
 | Get Involved | `get-involved.html` |
 | Resources & FAQs | `resources.html` |
 | Contact | `contact.html` |
-| Host a Campaign (multi-step + ₹500 Razorpay fee) | `campaign-application.html` |
+| Host a Campaign (multi-step + min ₹500 UPI fee) | `campaign-application.html` |
 
 ## Structure
 
@@ -60,15 +60,17 @@ python3 -m http.server 8000
 The site is plain HTML/CSS/JS — host it anywhere: Netlify / Vercel / GitHub Pages /
 any shared hosting. Just upload the contents of this folder.
 
-## Campaign application (Razorpay)
+## Campaign application (direct UPI)
 
-`campaign-application.html` is a 3-step application form with a mandatory ₹500
-logistics fee paid through Razorpay Standard Checkout (UPI / cards / netbanking).
-It requires the Flask backend in the repo's `../backend/` folder (order creation +
-cryptographic payment verification + MongoDB storage). Follow `backend/README.md`
-to set env vars, run it, and point `CAMPAIGN_API_BASE` in the page at the deployed
-URL. Until the backend is deployed, the page shows a friendly "could not reach our
-server" message on submit.
+`campaign-application.html` is a 3-step application form with a logistics fee (minimum ₹500,
+more welcome) paid **directly by UPI** to the Trust's UPI ID (`lampeducational@ybl`):
+the page shows a QR code and a tap-to-pay UPI link, then collects the payer's UTR
+reference. Applications land in the Neon database as `upi_claimed` via the Flask
+backend in `../backend/` — **the team must verify each UTR against the bank/UPI
+statement before confirming a campaign date** (a typed UTR is a claim, not proof).
+Follow `backend/README.md` to run/deploy the backend and point `CAMPAIGN_API_BASE`
+in the page at the deployed URL. Razorpay gateway code exists but stays dormant
+unless keys are ever configured.
 
 ## Admin dashboard
 
@@ -88,7 +90,8 @@ the **impact numbers** in the home hero, and the **contact phone number**.
 
 ## Before going live — placeholders to replace
 
-- **Social links**: footer Instagram/Facebook/LinkedIn point to `#`.
+- **Social links**: Instagram is live (instagram.com/reclaimera.official); the footer
+  Facebook/LinkedIn icons still point to `#` until those URLs exist.
 - **Forms are LIVE** via FormSubmit.co (free, unlimited submissions): the pickup,
   contact, and newsletter forms POST to `https://formsubmit.co/reclaimera@gmail.com`
   (AJAX via the `/ajax/` endpoint, with a plain-POST fallback when JavaScript is off).
