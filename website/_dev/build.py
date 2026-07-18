@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Builds the Reclaim Era static site into /Users/prajwal/reclaim era/website/"""
-import os
+import os, time
+VER = str(int(time.time()))  # cache-busting version, bumped every build
 
 OUT = "/Users/prajwal/reclaim era/website"
 
@@ -109,7 +110,7 @@ def head(title, desc):
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="assets/favicon.png">
 {FONTS}
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v={VER}">
 </head>
 <body>'''
 
@@ -245,9 +246,11 @@ FOOTER = f'''
     </div>
   </div>
 </footer>
-<script src="js/site-data.js"></script>
-<script src="js/render.js"></script>
-<script src="js/main.js"></script>
+<script src="js/config.js?v={VER}"></script>
+<script src="js/gallery-data.js?v={VER}"></script>
+<script src="js/site-data.js?v={VER}"></script>
+<script src="js/render.js?v={VER}"></script>
+<script src="js/main.js?v={VER}"></script>
 </body>
 </html>'''
 
@@ -1330,40 +1333,7 @@ campaign_body = page_hero(
 
 
 # ================================================================ GALLERY & EVENTS
-GALLERY_JS = """
-<script src="js/gallery-data.js"></script>
-<script>
-(function () {
-  "use strict";
-  function esc(t){return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\"/g,"&quot;");}
-  var data = (window.RE_GALLERY || []).filter(function(x){ return x && (x.title || x.imageUrl); });
-  var grid = document.getElementById("galleryGrid");
-  var empty = document.getElementById("galleryEmpty");
-  if (!grid) return;
-  if (!data.length) { if (empty) empty.style.display = "block"; return; }
-  grid.innerHTML = data.map(function (ev) {
-    var media = ev.imageUrl
-      ? '<img src="' + esc(ev.imageUrl) + '" alt="' + esc(ev.title) + '" loading="lazy">'
-      : '<div class="gal-ph"><span>Photo coming soon</span></div>';
-    var date = ev.date ? '<span class="gal-date">' + esc(ev.date) + '</span>' : '';
-    var attrs = ev.imageUrl ? ' has-img" data-full="' + esc(ev.imageUrl) + '" data-title="' + esc(ev.title) + '"' : '"';
-    return '<article class="gal-card' + attrs + '>'
-      + '<div class="gal-media">' + media + date + '</div>'
-      + '<div class="gal-body"><h3>' + esc(ev.title) + '</h3>'
-      + (ev.description ? '<p>' + esc(ev.description) + '</p>' : '') + '</div></article>';
-  }).join("");
-  var lb = document.getElementById("galLightbox");
-  grid.addEventListener("click", function (e) {
-    var card = e.target.closest(".gal-card.has-img");
-    if (!card) return;
-    lb.querySelector("img").src = card.getAttribute("data-full");
-    lb.querySelector(".gal-lb-cap").textContent = card.getAttribute("data-title") || "";
-    lb.classList.add("open");
-  });
-  if (lb) lb.addEventListener("click", function () { lb.classList.remove("open"); });
-})();
-</script>
-"""
+GALLERY_JS = ""  # gallery is rendered by js/render.js now
 
 gallery_body = page_hero(
     '<span>Gallery &amp; Events</span>',

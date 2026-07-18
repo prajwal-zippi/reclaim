@@ -143,6 +143,11 @@ CREATE TABLE IF NOT EXISTS admin_settings (
   password_hash TEXT NOT NULL,
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS site_content (
+  id         SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  data       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 """
 
 MIGRATIONS = [
@@ -260,6 +265,35 @@ def admin_change_password():
         conn.execute(
             "UPDATE admin_settings SET password_hash = %s, updated_at = now() WHERE id = 1",
             (hash_password(new),),
+        )
+    return jsonify({"ok": True})
+
+
+@app.get("/api/content")
+def get_content():
+    """Public: the live shop/gallery/stats/phone content the site renders from."""
+    with db() as conn:
+        row = conn.execute("SELECT data FROM site_content WHERE id = 1").fetchone()
+    return jsonify(row[0] if row and row[0] else {})
+
+
+@app.post("/api/admin/content")
+def save_content():
+    """Admin-only: overwrite the live content blob (persists to Neon, goes live)."""
+    from psycopg.types.json import Json
+
+    data = request.get_json(silent=True) or {}
+    if not token_valid(data.get("token") or ""):
+        return jsonify({"ok": False, "error": "Session expired. Log in again."}), 401
+    content = data.get("content")
+    if not isinstance(content, dict):
+        return jsonify({"ok": False, "error": "Invalid content."}), 400
+
+    with db() as conn:
+        conn.execute(
+            "INSERT INTO site_content (id, data, updated_at) VALUES (1, %s, now()) "
+            "ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = now()",
+            (Json(content),),
         )
     return jsonify({"ok": True})
 

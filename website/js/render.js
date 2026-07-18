@@ -1,23 +1,20 @@
 /* ============================================================
    Reclaim Era — data-driven rendering
-   Reads window.RE_DATA (js/site-data.js). If this browser has
-   unpublished admin edits (saved by admin.html), those are
-   previewed here instead — visitors never see them.
+   Precedence for what the site shows:
+     1. a local admin DRAFT in this browser (device-only preview)
+     2. LIVE content from the backend/Neon (/api/content)
+     3. the static files js/site-data.js + js/gallery-data.js (fallback)
+   The static files paint instantly; live content re-renders when it
+   arrives, so visitors never wait on a cold backend.
    ============================================================ */
 (function () {
   "use strict";
 
   var PREVIEW_KEY = "re-site-data";
-
-  var data = window.RE_DATA || {};
-  var previewing = false;
-  try {
-    var draft = JSON.parse(localStorage.getItem(PREVIEW_KEY));
-    if (draft && typeof draft === "object") {
-      data = draft;
-      previewing = true;
-    }
-  } catch (e) {}
+  var API_BASE =
+    (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+      ? "http://localhost:5001"
+      : (window.RE_API_BASE || "");
 
   /* ---------- product artwork ---------- */
   var ART = {
@@ -26,18 +23,15 @@
     organizer: '<svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="104" r="86" fill="rgba(23,37,30,.045)"/><circle cx="100" cy="104" r="86" fill="none" stroke="#96543F" stroke-width="1.6" stroke-dasharray="5 7" opacity=".4"/><rect x="46" y="58" width="108" height="92" rx="10" fill="#2E4B8F"/><rect x="46" y="58" width="108" height="92" rx="10" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="4 5" opacity=".5"/><rect x="120" y="58" width="34" height="92" rx="10" fill="#3D5A99"/><rect x="132" y="86" width="10" height="36" rx="5" fill="#96543F"/><rect x="58" y="74" width="44" height="6" rx="3" fill="#E8EBFB" opacity=".85"/><rect x="58" y="88" width="32" height="6" rx="3" fill="#E8EBFB" opacity=".55"/><circle cx="64" cy="136" r="6" fill="#00BF63"/></svg>',
     bundle: '<svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="104" r="86" fill="rgba(23,37,30,.045)"/><circle cx="100" cy="104" r="86" fill="none" stroke="#E8B84B" stroke-width="1.6" stroke-dasharray="5 7" opacity=".55"/><rect x="50" y="86" width="100" height="72" rx="10" fill="#0D3B28"/><rect x="50" y="86" width="100" height="20" rx="10" fill="#14532F"/><rect x="93" y="86" width="14" height="72" fill="#E8B84B"/><path d="M100 86 C 80 78 76 58 92 56 C 102 55 102 72 100 86 C 98 72 98 55 108 56 C 124 58 120 78 100 86Z" fill="#96543F"/><circle cx="100" cy="86" r="6" fill="#00BF63"/><rect x="50" y="86" width="100" height="72" rx="10" fill="none" stroke="#fff" stroke-width="1.4" stroke-dasharray="4 5" opacity=".35"/></svg>'
   };
-
   var HEART =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12.6 12 20l-7.5-7.4a5 5 0 1 1 7.5-6.6 5 5 0 1 1 7.5 6.6Z"/></svg>';
 
   function esc(s) {
     return String(s == null ? "" : s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
+  /* ---------- shop cards ---------- */
   function card(p, variant, revealClass) {
     var art = ART[p.art] || ART.tote;
     var reveal = revealClass ? " " + revealClass : "";
@@ -47,7 +41,6 @@
       "<h4>" + esc(p.name) + "</h4>" +
       (p.price ? '<p class="prod-price">' + esc(p.price) + "</p>" : "") +
       (p.impact ? '<p class="imp">' + HEART + " " + esc(p.impact) + "</p>" : "");
-
     if (variant === "teaser") {
       return '<a href="shop.html" class="prod-card' + reveal + '">' + inner + "</div></a>";
     }
@@ -58,10 +51,9 @@
       "</div></div>"
     );
   }
-
-  function renderInto(el, d, opts) {
+  function renderProducts(el, products, opts) {
     opts = opts || {};
-    var items = (d.products || []).filter(function (p) { return p.visible !== false; });
+    var items = (products || []).filter(function (p) { return p.visible !== false; });
     if (opts.limit) items = items.slice(0, opts.limit);
     if (!items.length) {
       el.innerHTML =
@@ -70,48 +62,102 @@
       return;
     }
     var delays = ["", "reveal-d1", "reveal-d2", "reveal-d3"];
-    el.innerHTML = items
-      .map(function (p, i) {
-        var rc = opts.reveal ? ("reveal " + delays[i % 4]).trim() : "";
-        return card(p, opts.variant || "full", rc);
+    el.innerHTML = items.map(function (p, i) {
+      var rc = opts.reveal ? ("reveal " + delays[i % 4]).trim() : "";
+      return card(p, opts.variant || "full", rc);
+    }).join("");
+  }
+
+  /* ---------- gallery cards ---------- */
+  function renderGallery(grid, events) {
+    events = (events || []).filter(function (x) { return x && (x.title || x.imageUrl); });
+    var empty = document.getElementById("galleryEmpty");
+    if (!events.length) { grid.innerHTML = ""; if (empty) empty.style.display = "block"; return; }
+    if (empty) empty.style.display = "none";
+    grid.innerHTML = events.map(function (ev) {
+      var media = ev.imageUrl
+        ? '<img src="' + esc(ev.imageUrl) + '" alt="' + esc(ev.title) + '" loading="lazy">'
+        : '<div class="gal-ph"><span>Photo coming soon</span></div>';
+      var date = ev.date ? '<span class="gal-date">' + esc(ev.date) + "</span>" : "";
+      var attrs = ev.imageUrl ? ' has-img" data-full="' + esc(ev.imageUrl) + '" data-title="' + esc(ev.title) + '"' : '"';
+      return '<article class="gal-card' + attrs + '>'
+        + '<div class="gal-media">' + media + date + "</div>"
+        + '<div class="gal-body"><h3>' + esc(ev.title) + "</h3>"
+        + (ev.description ? "<p>" + esc(ev.description) + "</p>" : "") + "</div></article>";
+    }).join("");
+  }
+
+  /* ---------- apply a content object to the page ---------- */
+  function apply(data, gallery) {
+    document.querySelectorAll('[data-render="products"]').forEach(function (el) {
+      renderProducts(el, data.products, {
+        variant: el.getAttribute("data-variant") || "full",
+        limit: parseInt(el.getAttribute("data-limit") || "0", 10),
+        reveal: true
+      });
+    });
+    document.querySelectorAll("[data-stat]").forEach(function (el) {
+      var v = (data.stats || {})[el.getAttribute("data-stat")];
+      if (v) el.textContent = v;
+    });
+    if (data.phone) {
+      document.querySelectorAll("[data-phone]").forEach(function (el) {
+        el.textContent = data.phone;
+        if (el.tagName === "A") el.href = "tel:" + String(data.phone).replace(/[^+\d]/g, "");
+      });
+    }
+    var grid = document.getElementById("galleryGrid");
+    if (grid) renderGallery(grid, gallery);
+  }
+
+  /* ---------- resolve: static baseline, then draft or live ---------- */
+  var staticData = window.RE_DATA || {};
+  var staticGallery = window.RE_GALLERY || [];
+
+  var draft = null;
+  try { draft = JSON.parse(localStorage.getItem(PREVIEW_KEY)); } catch (e) {}
+
+  if (draft && typeof draft === "object") {
+    apply(draft, draft.gallery || staticGallery);
+    showPreviewBanner();
+  } else {
+    apply(staticData, staticGallery);       // instant paint from static files
+    fetch(API_BASE + "/api/content", { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (live) {
+        if (live && (live.products || live.stats || live.phone || live.gallery)) {
+          apply(
+            { products: live.products || staticData.products, stats: live.stats || staticData.stats, phone: live.phone || staticData.phone },
+            live.gallery || staticGallery
+          );
+        }
       })
-      .join("");
+      .catch(function () {});               // offline / no backend → keep static
   }
 
-  /* ---------- apply to page ---------- */
-  document.querySelectorAll('[data-render="products"]').forEach(function (el) {
-    renderInto(el, data, {
-      variant: el.getAttribute("data-variant") || "full",
-      limit: parseInt(el.getAttribute("data-limit") || "0", 10),
-      reveal: true
+  /* gallery lightbox (bind once) */
+  var grid = document.getElementById("galleryGrid");
+  var lb = document.getElementById("galLightbox");
+  if (grid && lb) {
+    grid.addEventListener("click", function (e) {
+      var c = e.target.closest(".gal-card.has-img");
+      if (!c) return;
+      lb.querySelector("img").src = c.getAttribute("data-full");
+      lb.querySelector(".gal-lb-cap").textContent = c.getAttribute("data-title") || "";
+      lb.classList.add("open");
     });
-  });
-
-  document.querySelectorAll("[data-stat]").forEach(function (el) {
-    var v = (data.stats || {})[el.getAttribute("data-stat")];
-    if (v) el.textContent = v;
-  });
-
-  if (data.phone) {
-    document.querySelectorAll("[data-phone]").forEach(function (el) {
-      el.textContent = data.phone;
-      if (el.tagName === "A") el.href = "tel:" + String(data.phone).replace(/[^+\d]/g, "");
-    });
+    lb.addEventListener("click", function () { lb.classList.remove("open"); });
   }
 
-  /* small banner so the admin knows they are looking at a draft */
-  if (previewing && !document.querySelector(".admin-preview-note")) {
+  function showPreviewBanner() {
+    if (document.querySelector(".admin-preview-note")) return;
     var note = document.createElement("div");
     note.className = "admin-preview-note";
-    note.innerHTML =
-      'Draft preview (only visible on this device) &nbsp;·&nbsp; <a href="admin.html" style="text-decoration:underline">Open dashboard</a>';
-    note.style.cssText =
-      "position:fixed;bottom:0;left:0;right:0;z-index:200;background:#E8B84B;color:#17251E;" +
-      "font:600 13px/1.4 Inter,sans-serif;text-align:center;padding:8px 14px;";
+    note.innerHTML = 'Draft preview (only on this device) &nbsp;·&nbsp; <a href="admin.html" style="text-decoration:underline">Open dashboard</a>';
+    note.style.cssText = "position:fixed;bottom:0;left:0;right:0;z-index:200;background:#E8B84B;color:#17251E;font:600 13px/1.4 Inter,sans-serif;text-align:center;padding:8px 14px;";
     document.body.appendChild(note);
   }
 
   /* expose for admin.html */
-  window.RE_RENDER = { ART: ART, card: card, renderInto: renderInto, esc: esc, PREVIEW_KEY: PREVIEW_KEY };
-  window.__RE_ACTIVE_DATA = data;
+  window.RE_RENDER = { ART: ART, card: card, renderInto: renderProducts, esc: esc, PREVIEW_KEY: PREVIEW_KEY, API_BASE: API_BASE };
 })();

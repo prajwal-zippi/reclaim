@@ -29,6 +29,8 @@ View pending ones in Neon:
 | POST | `/api/admin/login` | Verifies the admin password (PBKDF2 hash in `admin_settings`), returns a 12-hour signed session token |
 | POST | `/api/admin/check` | Validates a session token |
 | POST | `/api/admin/change-password` | Requires token + current password; enforces the policy (8+ chars, upper, lower, digit, symbol) and stores the new hash |
+| GET | `/api/content` | Public: the live shop/gallery/stats/phone the site renders from |
+| POST | `/api/admin/content` | Admin-only (token): overwrite the live content in Neon |
 | GET | `/api/health` | Liveness check |
 
 The ₹500 amount is defined **server-side only** (`LOGISTICS_FEE_PAISE`) — the client
@@ -91,6 +93,30 @@ immediately from the dashboard). To reset a forgotten password:
 `DELETE FROM admin_settings;` in Neon's SQL editor, restart the backend, and the
 default is re-seeded. Optional: set a stable `SECRET_KEY` env var so admin sessions
 survive a DATABASE_URL rotation.
+
+## Deploying the backend for free (always-on)
+
+The admin dashboard (editing gallery + shop) needs this backend reachable. Best free,
+no-sleep option:
+
+**Vercel (recommended) — one deploy for the whole site + API, no CORS.**
+1. Push the repo to GitHub (already done).
+2. At https://vercel.com → New Project → import the repo. The included `vercel.json`
+   serves `website/` as static files and runs this Flask app as serverless functions at
+   `/api/*` on the same domain.
+3. In the Vercel project → Settings → Environment Variables, add `DATABASE_URL` (your
+   Neon string) and optionally `SECRET_KEY` (any long random string, keeps admin logins
+   valid across restarts). Redeploy.
+4. Because the site and API share one domain, leave `website/js/config.js`
+   `RE_API_BASE = ""`. If instead you keep the site on Netlify and host ONLY the API on
+   Vercel, set `RE_API_BASE` to the Vercel URL.
+
+Unlike Render's free tier, Vercel functions don't sleep (they cold-start in ~1–2s).
+Neon's free tier autosuspends after 5 min and wakes in ~1s — the public site never waits
+on it because it renders the static files instantly and updates when the API responds.
+
+Other free options: **Koyeb** (free web service that doesn't sleep, runs `gunicorn app:app`),
+or **Fly.io** (free allowance, needs a card). Render works too but its free tier sleeps.
 
 ## Go-live checklist
 - [ ] Razorpay KYC approved → switch `.env` to `rzp_live_...` keys
