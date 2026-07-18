@@ -15,9 +15,12 @@ Endpoints
 Credentials are read from environment variables only — see .env.example.
 """
 
+import hashlib
+import hmac as hmac_mod
 import os
 import re
 import secrets
+import time
 from datetime import datetime, timezone
 
 import psycopg
@@ -45,6 +48,56 @@ RAZORPAY_ENABLED = bool(
 
 LOGISTICS_FEE_PAISE = 50000  # Rs.500 — authoritative amount lives here, never trusted from the client
 CURRENCY = "INR"
+
+# ---- admin auth ----
+# Signing key for session tokens. Set SECRET_KEY in production for stability
+# across DATABASE_URL rotations; falls back to a derivation of the DB URL.
+SECRET_KEY = os.environ.get("SECRET_KEY") or hashlib.sha256(
+    ("re-admin::" + DATABASE_URL).encode()
+).hexdigest()
+TOKEN_TTL_SECONDS = 12 * 3600
+DEFAULT_ADMIN_PASSWORD = "Reclaim@2026"  # seeded once; must be changed after first login
+PBKDF2_ITERATIONS = 240_000
+
+
+def hash_password(pw: str) -> str:
+    salt = secrets.token_hex(16)
+    dk = hashlib.pbkdf2_hmac("sha256", pw.encode(), bytes.fromhex(salt), PBKDF2_ITERATIONS)
+    return f"pbkdf2${salt}${dk.hex()}"
+
+
+def verify_password(pw: str, stored: str) -> bool:
+    try:
+        _, salt, digest = stored.split("$")
+        dk = hashlib.pbkdf2_hmac("sha256", pw.encode(), bytes.fromhex(salt), PBKDF2_ITERATIONS)
+        return hmac_mod.compare_digest(dk.hex(), digest)
+    except Exception:
+        return False
+
+
+def make_token() -> str:
+    exp = str(int(time.time()) + TOKEN_TTL_SECONDS)
+    sig = hmac_mod.new(SECRET_KEY.encode(), exp.encode(), hashlib.sha256).hexdigest()
+    return exp + "." + sig
+
+
+def token_valid(tok: str) -> bool:
+    try:
+        exp, sig = tok.split(".")
+        good = hmac_mod.new(SECRET_KEY.encode(), exp.encode(), hashlib.sha256).hexdigest()
+        return hmac_mod.compare_digest(sig, good) and int(exp) > time.time()
+    except Exception:
+        return False
+
+
+def password_meets_policy(pw: str) -> bool:
+    return bool(
+        len(pw) >= 8
+        and re.search(r"[A-Z]", pw)
+        and re.search(r"[a-z]", pw)
+        and re.search(r"\d", pw)
+        and re.search(r"[^A-Za-z0-9]", pw)
+    )
 LOCATION_TYPES = [
     "Apartment Complex", "Companies", "School", "College/University",
     "Small/Medium Business (SMB)", "Restaurants/GYM/Hotels/Super Markets/Malls", "Other",
@@ -84,6 +137,14 @@ CREATE TABLE IF NOT EXISTS campaign_applications (
 );
 """
 
+ADMIN_SCHEMA = """
+CREATE TABLE IF NOT EXISTS admin_settings (
+  id            SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  password_hash TEXT NOT NULL,
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+"""
+
 MIGRATIONS = [
     "ALTER TABLE campaign_applications ALTER COLUMN razorpay_order_id DROP NOT NULL",
     "ALTER TABLE campaign_applications ADD COLUMN IF NOT EXISTS upi_utr TEXT",
@@ -93,11 +154,18 @@ MIGRATIONS = [
 try:
     with db() as conn:
         conn.execute(SCHEMA)
+        conn.execute(ADMIN_SCHEMA)
         for mig in MIGRATIONS:
             try:
                 conn.execute(mig)
             except Exception:
                 pass
+        # seed the default admin password once (change it after first login;
+        # to reset a forgotten password: DELETE FROM admin_settings; then restart)
+        conn.execute(
+            "INSERT INTO admin_settings (id, password_hash) VALUES (1, %s) ON CONFLICT (id) DO NOTHING",
+            (hash_password(DEFAULT_ADMIN_PASSWORD),),
+        )
 except Exception as exc:  # don't block boot on a cold DB; requests will surface errors
     print(f"WARNING: could not initialise database schema at startup: {exc}")
 
@@ -149,6 +217,51 @@ def clean(data):
 @app.get("/api/health")
 def health():
     return jsonify({"ok": True, "razorpay_enabled": RAZORPAY_ENABLED})
+
+
+@app.post("/api/admin/login")
+def admin_login():
+    password = (request.get_json(silent=True) or {}).get("password") or ""
+    time.sleep(0.4)  # slow down brute-force attempts
+    with db() as conn:
+        row = conn.execute("SELECT password_hash FROM admin_settings WHERE id = 1").fetchone()
+    if not row or not verify_password(password, row[0]):
+        return jsonify({"ok": False, "error": "Wrong password."}), 401
+    return jsonify({"ok": True, "token": make_token()})
+
+
+@app.post("/api/admin/check")
+def admin_check():
+    tok = (request.get_json(silent=True) or {}).get("token") or ""
+    if token_valid(tok):
+        return jsonify({"ok": True})
+    return jsonify({"ok": False}), 401
+
+
+@app.post("/api/admin/change-password")
+def admin_change_password():
+    data = request.get_json(silent=True) or {}
+    if not token_valid(data.get("token") or ""):
+        return jsonify({"ok": False, "error": "Session expired. Log in again."}), 401
+
+    current = data.get("current_password") or ""
+    new = data.get("new_password") or ""
+
+    if not password_meets_policy(new):
+        return jsonify({
+            "ok": False,
+            "error": "New password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number and a special symbol.",
+        }), 400
+
+    with db() as conn:
+        row = conn.execute("SELECT password_hash FROM admin_settings WHERE id = 1").fetchone()
+        if not row or not verify_password(current, row[0]):
+            return jsonify({"ok": False, "error": "Current password is wrong."}), 401
+        conn.execute(
+            "UPDATE admin_settings SET password_hash = %s, updated_at = now() WHERE id = 1",
+            (hash_password(new),),
+        )
+    return jsonify({"ok": True})
 
 
 UTR_RE = re.compile(r"^[A-Za-z0-9]{10,23}$")

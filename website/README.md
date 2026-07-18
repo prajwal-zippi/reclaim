@@ -78,9 +78,13 @@ unless keys are ever configured.
 **shop products** (add/remove/reorder/hide, names, prices, impact lines, artwork),
 the **impact numbers** in the home hero, and the **contact phone number**.
 
-- Default passcode: `reclaim2026` — **change it** in the `ADMIN_PASSCODE` constant inside
-  admin.html. It is a convenience lock only (client-side), not real security; keep the
-  page URL private.
+- **Login is server-verified**: the password is stored as a salted PBKDF2 hash in the
+  Neon database (never in the page), so the backend must be running/deployed for the
+  dashboard to open. Default password: `Reclaim@2026` — **change it right after the
+  first login** using the "Admin password" section (minimum 8 characters with an
+  uppercase letter, a lowercase letter, a number and a special symbol — enforced by
+  the server). Forgot it? Run `DELETE FROM admin_settings;` in Neon's SQL editor and
+  restart the backend — it re-seeds the default.
 - Edits save instantly as a draft **on that device only** and can be previewed across the
   site (a yellow "draft preview" bar appears).
 - **Publish** = press "Download publish file" and replace `js/site-data.js` on the

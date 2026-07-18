@@ -26,6 +26,9 @@ View pending ones in Neon:
 | POST | `/api/campaign/submit-upi` | Direct-UPI flow: validates the form + UTR, stores the application as `upi_claimed` for manual verification |
 | POST | `/api/campaign/create-order` | Validates the form data, creates a ₹500 Razorpay order, stores the application as `payment_pending`, returns `order_id` + public `key_id` |
 | POST | `/api/campaign/verify-payment` | Verifies `razorpay_order_id` / `razorpay_payment_id` / `razorpay_signature` with Razorpay's crypto util, marks the application `paid` |
+| POST | `/api/admin/login` | Verifies the admin password (PBKDF2 hash in `admin_settings`), returns a 12-hour signed session token |
+| POST | `/api/admin/check` | Validates a session token |
+| POST | `/api/admin/change-password` | Requires token + current password; enforces the policy (8+ chars, upper, lower, digit, symbol) and stores the new hash |
 | GET | `/api/health` | Liveness check |
 
 The ₹500 amount is defined **server-side only** (`LOGISTICS_FEE_PAISE`) — the client
@@ -79,6 +82,15 @@ Any Python host works (Render / Railway / Fly.io free tiers are fine):
 - Set `ALLOWED_ORIGIN` to the website's exact origin, e.g. `https://reclaimera.in`.
 - Finally, edit `campaign-application.html` and set `CAMPAIGN_API_BASE` to the
   deployed URL (marked with a `CHANGE ME` comment).
+
+## Admin dashboard auth
+
+The website's `admin.html` logs in through this backend. The password hash lives in
+the `admin_settings` table (seeded with `Reclaim@2026` on first start — change it
+immediately from the dashboard). To reset a forgotten password:
+`DELETE FROM admin_settings;` in Neon's SQL editor, restart the backend, and the
+default is re-seeded. Optional: set a stable `SECRET_KEY` env var so admin sessions
+survive a DATABASE_URL rotation.
 
 ## Go-live checklist
 - [ ] Razorpay KYC approved → switch `.env` to `rzp_live_...` keys

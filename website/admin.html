@@ -44,6 +44,9 @@
   }
   .actionbar .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .actionbar .status{font-size:.8rem;color:rgba(255,255,255,.7);margin-right:auto}
+  .pw-checks{display:flex;gap:8px 14px;flex-wrap:wrap;margin:14px 0 18px}
+  .pw-checks li{font-size:.8rem;font-weight:600;color:var(--ink-soft);padding:5px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper)}
+  .pw-checks li.ok{color:var(--green-deep);border-color:var(--green);background:var(--green-tint)}
   .gate{position:fixed;inset:0;z-index:300;background:var(--cream);display:grid;place-items:center;padding:24px}
   .gate .form-card{max-width:420px;width:100%;text-align:center}
   .gate .wordmark{justify-content:center;font-size:1.6rem;margin-bottom:8px}
@@ -64,9 +67,9 @@
   <div class="form-card">
     <span class="wordmark" style="display:block">re<span class="k">cla</span><span class="di">&#305;<i></i></span><span class="k">m</span> <span class="t">era</span><span class="dot">.</span></span>
     <p style="font-weight:700;margin-bottom:4px">Admin dashboard</p>
-    <p style="font-size:.88rem;color:var(--ink-soft);margin-bottom:20px">Enter the passcode to manage the shop and site numbers.</p>
-    <div class="field"><input type="password" id="passInput" placeholder="Passcode" autocomplete="off"></div>
-    <p id="passError" style="display:none;color:#a3341f;font-size:.85rem;font-weight:600;margin-top:10px">That passcode is not right. Try again.</p>
+    <p style="font-size:.88rem;color:var(--ink-soft);margin-bottom:20px">Enter the admin password to manage the shop and site numbers.</p>
+    <div class="field"><input type="password" id="passInput" placeholder="Password" autocomplete="current-password"></div>
+    <p id="passError" style="display:none;color:#a3341f;font-size:.85rem;font-weight:600;margin-top:10px">That password is not right. Try again.</p>
     <button class="btn btn-green" style="width:100%;margin-top:16px" onclick="tryPass()">Open Dashboard</button>
     <p style="font-size:.78rem;color:var(--ink-soft);margin-top:16px"><a href="index.html" style="text-decoration:underline">Back to the website</a></p>
   </div>
@@ -78,7 +81,10 @@
       <span class="wordmark" style="font-size:1.3rem">re<span class="k">cla</span><span class="di">&#305;<i></i></span><span class="k">m</span> <span class="t">era</span><span class="dot">.</span></span>
       <span class="adm-badge">Admin</span>
     </div>
-    <a href="index.html" target="_blank" class="btn btn-outline btn-sm">View site ↗</a>
+    <span style="display:flex;gap:8px">
+      <a href="index.html" target="_blank" class="btn btn-outline btn-sm">View site ↗</a>
+      <button class="btn btn-outline btn-sm" onclick="adminLogout()">Log out</button>
+    </span>
   </div>
 </header>
 
@@ -118,6 +124,25 @@
   </section>
 
   <section class="adm-section">
+    <h2>Admin password</h2>
+    <p class="sub">Change the password you use to open this dashboard. It must be at least 8 characters and include an uppercase letter, a lowercase letter, a number and a special symbol.</p>
+    <div class="adm-grid-3">
+      <div class="field"><label>Current password</label><input type="password" id="pwCurrent" autocomplete="current-password"></div>
+      <div class="field"><label>New password</label><input type="password" id="pwNew" autocomplete="new-password"></div>
+      <div class="field"><label>Confirm new password</label><input type="password" id="pwConfirm" autocomplete="new-password"></div>
+    </div>
+    <ul class="pw-checks" id="pwChecks">
+      <li data-k="len">8+ characters</li>
+      <li data-k="up">Uppercase letter</li>
+      <li data-k="low">Lowercase letter</li>
+      <li data-k="num">Number</li>
+      <li data-k="sym">Special symbol</li>
+    </ul>
+    <button class="btn btn-green" onclick="changePassword()">Update password</button>
+    <p id="pwMsg" style="margin-top:12px;font-weight:600;font-size:.9rem"></p>
+  </section>
+
+  <section class="adm-section">
     <h2>Live preview</h2>
     <p class="sub">This is exactly how the product cards will look on the Shop page.</p>
     <div class="prod-grid" id="previewGrid"></div>
@@ -139,22 +164,126 @@
 (function () {
   "use strict";
 
-  /* ------- passcode gate (a convenience lock, not real security:
-     anyone with the file can read it — keep the page unlisted) ------- */
-  var ADMIN_PASSCODE = "reclaim2026";   // <-- change this!
+  /* ------- server-verified login (password hash lives in the database).
+     CHANGE ME after deploying the backend (see backend/README.md) ------- */
+  var API_BASE = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+    ? "http://localhost:5001"
+    : "https://REPLACE-WITH-DEPLOYED-BACKEND";
+  var TOKEN_KEY = "re-admin-token";
+
   var gate = document.getElementById("gate");
-  if (sessionStorage.getItem("re-admin-ok") === "1") gate.remove();
+  var passError = document.getElementById("passError");
+
+  function gateError(msg) {
+    passError.textContent = msg;
+    passError.style.display = "block";
+  }
+
+  /* restore an existing session if the token is still valid */
+  var savedToken = sessionStorage.getItem(TOKEN_KEY);
+  if (savedToken) {
+    fetch(API_BASE + "/api/admin/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: savedToken })
+    }).then(function (r) {
+      if (r.ok) { gate.remove(); }
+      else { sessionStorage.removeItem(TOKEN_KEY); }
+    }).catch(function () {});
+  }
+
   window.tryPass = function () {
-    if (document.getElementById("passInput").value === ADMIN_PASSCODE) {
-      sessionStorage.setItem("re-admin-ok", "1");
-      gate.remove();
-    } else {
-      document.getElementById("passError").style.display = "block";
-    }
+    passError.style.display = "none";
+    fetch(API_BASE + "/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: document.getElementById("passInput").value })
+    })
+      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+      .then(function (r) {
+        if (r.ok && r.d.token) {
+          sessionStorage.setItem(TOKEN_KEY, r.d.token);
+          gate.remove();
+        } else {
+          gateError("That password is not right. Try again.");
+        }
+      })
+      .catch(function () {
+        gateError("Could not reach the server. The dashboard needs the backend running (see backend/README.md).");
+      });
   };
   document.getElementById("passInput").addEventListener("keydown", function (e) {
     if (e.key === "Enter") window.tryPass();
   });
+
+  window.adminLogout = function () {
+    sessionStorage.removeItem(TOKEN_KEY);
+    location.reload();
+  };
+
+  /* ------- change password (policy checked live here AND on the server) ------- */
+  var pwNew = document.getElementById("pwNew");
+  function policyState(pw) {
+    return {
+      len: pw.length >= 8,
+      up: /[A-Z]/.test(pw),
+      low: /[a-z]/.test(pw),
+      num: /\d/.test(pw),
+      sym: /[^A-Za-z0-9]/.test(pw)
+    };
+  }
+  pwNew.addEventListener("input", function () {
+    var st = policyState(pwNew.value);
+    document.querySelectorAll("#pwChecks li").forEach(function (li) {
+      li.classList.toggle("ok", !!st[li.getAttribute("data-k")]);
+    });
+  });
+
+  window.changePassword = function () {
+    var msg = document.getElementById("pwMsg");
+    msg.style.color = "#a3341f";
+    var current = document.getElementById("pwCurrent").value;
+    var next = pwNew.value;
+    var confirm2 = document.getElementById("pwConfirm").value;
+
+    var st = policyState(next);
+    if (!(st.len && st.up && st.low && st.num && st.sym)) {
+      msg.textContent = "The new password does not meet all the requirements above.";
+      return;
+    }
+    if (next !== confirm2) {
+      msg.textContent = "The two new passwords do not match.";
+      return;
+    }
+    msg.style.color = "var(--ink-soft)";
+    msg.textContent = "Updating…";
+
+    fetch(API_BASE + "/api/admin/change-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token: sessionStorage.getItem(TOKEN_KEY),
+        current_password: current,
+        new_password: next
+      })
+    })
+      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+      .then(function (r) {
+        if (r.ok && r.d.ok) {
+          msg.style.color = "var(--green-deep)";
+          msg.textContent = "Password updated. Use the new password from your next login.";
+          document.getElementById("pwCurrent").value = pwNew.value = document.getElementById("pwConfirm").value = "";
+          document.querySelectorAll("#pwChecks li").forEach(function (li) { li.classList.remove("ok"); });
+        } else {
+          msg.style.color = "#a3341f";
+          msg.textContent = (r.d && r.d.error) || "Could not update the password.";
+        }
+      })
+      .catch(function () {
+        msg.style.color = "#a3341f";
+        msg.textContent = "Could not reach the server. Try again in a minute.";
+      });
+  };
 
   /* ------- state ------- */
   var R = window.RE_RENDER;
