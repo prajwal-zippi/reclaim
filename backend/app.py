@@ -15,6 +15,7 @@ Endpoints
 Credentials are read from environment variables only — see .env.example.
 """
 
+import base64
 import hashlib
 import hmac as hmac_mod
 import os
@@ -148,7 +149,15 @@ CREATE TABLE IF NOT EXISTS site_content (
   data       JSONB NOT NULL DEFAULT '{}'::jsonb,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+CREATE TABLE IF NOT EXISTS images (
+  id         TEXT PRIMARY KEY,
+  mime       TEXT NOT NULL,
+  data       BYTEA NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 """
+
+MAX_IMAGE_BYTES = 4_000_000  # ~4 MB after client-side compression
 
 MIGRATIONS = [
     "ALTER TABLE campaign_applications ALTER COLUMN razorpay_order_id DROP NOT NULL",
@@ -274,7 +283,46 @@ def get_content():
     """Public: the live shop/gallery/stats/phone content the site renders from."""
     with db() as conn:
         row = conn.execute("SELECT data FROM site_content WHERE id = 1").fetchone()
-    return jsonify(row[0] if row and row[0] else {})
+    resp = jsonify(row[0] if row and row[0] else {})
+    resp.headers["Cache-Control"] = "public, max-age=60"  # brief browser cache
+    return resp
+
+
+@app.post("/api/admin/upload")
+def upload_image():
+    """Admin-only: store a JPEG/PNG uploaded from the dashboard, return its URL.
+    Expects JSON { token, data } where data is a data:image/...;base64 string."""
+    data = request.get_json(silent=True) or {}
+    if not token_valid(data.get("token") or ""):
+        return jsonify({"ok": False, "error": "Session expired. Log in again."}), 401
+
+    m = re.match(r"^data:(image/(png|jpe?g));base64,(.+)$", (data.get("data") or ""), re.S)
+    if not m:
+        return jsonify({"ok": False, "error": "Only JPEG or PNG images are allowed."}), 400
+    mime = "image/jpeg" if m.group(2).startswith("jp") else "image/png"
+    try:
+        raw = base64.b64decode(m.group(3))
+    except Exception:
+        return jsonify({"ok": False, "error": "Could not read the image."}), 400
+    if len(raw) > MAX_IMAGE_BYTES:
+        return jsonify({"ok": False, "error": "Image is too large (max 4 MB)."}), 400
+
+    img_id = secrets.token_hex(8) + (".jpg" if mime == "image/jpeg" else ".png")
+    with db() as conn:
+        conn.execute("INSERT INTO images (id, mime, data) VALUES (%s, %s, %s)", (img_id, mime, raw))
+    return jsonify({"ok": True, "url": "/api/image/" + img_id})
+
+
+@app.get("/api/image/<img_id>")
+def get_image(img_id):
+    from flask import Response
+    with db() as conn:
+        row = conn.execute("SELECT mime, data FROM images WHERE id = %s", (img_id,)).fetchone()
+    if not row:
+        return ("Not found", 404)
+    resp = Response(bytes(row[1]), mimetype=row[0])
+    resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"  # id is unique per upload
+    return resp
 
 
 @app.post("/api/admin/content")

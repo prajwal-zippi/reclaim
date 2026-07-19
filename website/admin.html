@@ -90,12 +90,11 @@
 
 <main class="wrap">
   <div class="howto">
-    <b>How publishing works:</b> your edits below are saved instantly as a <b>draft on this device</b>, so you can
-    preview them safely on the site. Nobody else sees them yet. When you are happy:
-    <ol>
-      <li>Press <b>Download publish file</b> in the bottom bar (it saves <b>site-data.js</b>).</li>
-      <li>Replace the file <b>js/site-data.js</b> on your website hosting with the downloaded one (or send it to your web person).</li>
-    </ol>
+    <b>How it works:</b> edit the shop, gallery, numbers or phone below — you can upload
+    photos or paste image links. When you are happy, press <b>Save &amp; publish to site</b>
+    in the bottom bar. Your changes are saved and go <b>live on the website immediately</b>
+    for everyone. (<b>Download backup</b> saves a copy you can keep, and the site keeps
+    working even if the server is briefly asleep.)
   </div>
 
   <section class="adm-section">
@@ -164,10 +163,10 @@
   </div>
 </div>
 
-<script src="js/config.js?v=2"></script>
-<script src="js/gallery-data.js?v=2"></script>
-<script src="js/site-data.js?v=2"></script>
-<script src="js/render.js?v=2"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/gallery-data.js?v=3"></script>
+<script src="js/site-data.js?v=3"></script>
+<script src="js/render.js?v=3"></script>
 <script>
 (function () {
   "use strict";
@@ -316,6 +315,57 @@
   var dirty = false;
 
   function copy(x) { return x ? JSON.parse(JSON.stringify(x)) : x; }
+  function resolveImg(u) { return (u && u.indexOf("/api/") === 0) ? API_BASE + u : u; }
+
+  /* shrink an image in the browser, then upload it to the backend (stored in Neon) */
+  function compressImage(file, maxDim, cb) {
+    if (!/^image\/(png|jpe?g)$/.test(file.type)) { cb(null, "Please choose a JPEG or PNG image."); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        var cw = Math.round(img.width * scale), ch = Math.round(img.height * scale);
+        var c = document.createElement("canvas"); c.width = cw; c.height = ch;
+        c.getContext("2d").drawImage(img, 0, 0, cw, ch);
+        var isPng = file.type === "image/png";
+        cb(c.toDataURL(isPng ? "image/png" : "image/jpeg", 0.82));
+      };
+      img.onerror = function () { cb(null, "Could not read that image."); };
+      img.src = reader.result;
+    };
+    reader.onerror = function () { cb(null, "Could not read that file."); };
+    reader.readAsDataURL(file);
+  }
+  function uploadImage(file, done) {
+    var token = sessionStorage.getItem(TOKEN_KEY);
+    if (!token || token === "local") { done(null, "Uploads need the backend running / server login."); return; }
+    compressImage(file, 1600, function (dataUrl, err) {
+      if (err) { done(null, err); return; }
+      document.getElementById("statusText").textContent = "Uploading image…";
+      fetch(API_BASE + "/api/admin/upload", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: token, data: dataUrl })
+      })
+        .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+        .then(function (r) { if (r.ok && r.d.ok) done(r.d.url); else done(null, (r.d && r.d.error) || "Upload failed."); })
+        .catch(function () { done(null, "Could not reach the server." ); });
+    });
+  }
+  window.pickEvImg = function (e, i) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    uploadImage(f, function (url, err) {
+      if (err) { document.getElementById("statusText").textContent = err; return; }
+      state.gallery[i].imageUrl = url; save(); renderGalleryEditors();
+    });
+  };
+  window.pickProdImg = function (e, i) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    uploadImage(f, function (url, err) {
+      if (err) { document.getElementById("statusText").textContent = err; return; }
+      state.products[i].imageUrl = url; save(); renderEditors();
+    });
+  };
 
   function seedFrom(src) {
     state.products = src && src.products ? copy(src.products) : [];
@@ -374,12 +424,17 @@
       var opts = ART_OPTIONS.map(function (o) {
         return '<option value="' + o[0] + '"' + (p.art === o[0] ? " selected" : "") + ">" + o[1] + "</option>";
       }).join("");
+      var pthumb = p.imageUrl
+        ? '<div class="prod-thumb" style="overflow:hidden;padding:0"><img src="' + R.esc(resolveImg(p.imageUrl)) + '" alt="" style="width:100%;height:100%;object-fit:cover"></div>'
+        : '<div class="prod-thumb">' + (R.ART[p.art] || R.ART.tote) + "</div>";
       return (
         '<div class="prod-editor' + (p.visible === false ? " hidden-prod" : "") + '">' +
-        '<div class="prod-thumb">' + (R.ART[p.art] || R.ART.tote) + "</div>" +
+        pthumb +
         '<div class="pe-fields">' +
         field("Product name", p.name, "upName", i) +
-        '<div class="field"><label>Artwork</label><select onchange="upArt(' + i + ', this.value)">' + opts + "</select></div>" +
+        '<div class="field"><label>Artwork (used if no photo)</label><select onchange="upArt(' + i + ', this.value)">' + opts + "</select></div>" +
+        '<div class="field full"><label>Product photo — upload JPEG/PNG (optional, replaces artwork)</label><input type="file" accept="image/png,image/jpeg" onchange="pickProdImg(event,' + i + ')"></div>' +
+        field("…or paste a photo link (https), clear to use artwork", p.imageUrl, "upImg", i, "full") +
         field("Price (optional, e.g. ₹799)", p.price, "upPrice", i) +
         field("Impact line (e.g. Funds 10 notebooks)", p.impact, "upImpact", i) +
         field("Short description", p.desc, "upDesc", i, "full") +
@@ -396,6 +451,7 @@
   }
 
   window.upName = function (i, v) { state.products[i].name = v; save(); };
+  window.upImg = function (i, v) { state.products[i].imageUrl = v; save(); };
   window.upPrice = function (i, v) { state.products[i].price = v; save(); };
   window.upImpact = function (i, v) { state.products[i].impact = v; save(); };
   window.upDesc = function (i, v) { state.products[i].desc = v; save(); };
@@ -434,12 +490,13 @@
   function renderGalleryEditors() {
     galEl.innerHTML = state.gallery.map(function (ev, i) {
       var thumb = ev.imageUrl
-        ? '<img src="' + R.esc(ev.imageUrl) + '" alt="" style="width:100%;height:100%;object-fit:cover">'
+        ? '<img src="' + R.esc(resolveImg(ev.imageUrl)) + '" alt="" style="width:100%;height:100%;object-fit:cover">'
         : '<div class="gal-ph" style="border-radius:12px"><span>No image</span></div>';
       return '<div class="prod-editor">' +
         '<div class="prod-thumb" style="overflow:hidden;padding:0">' + thumb + "</div>" +
         '<div class="pe-fields">' +
-        galField("Image link (https…, or leave empty)", ev.imageUrl, "upEvImg", i, "full") +
+        '<div class="field full"><label>Upload a photo (JPEG or PNG)</label><input type="file" accept="image/png,image/jpeg" onchange="pickEvImg(event,' + i + ')"></div>' +
+        galField("…or paste an image link (https)", ev.imageUrl, "upEvImg", i, "full") +
         galField("Title", ev.title, "upEvTitle", i) +
         galField("Date (e.g. March 2026)", ev.date, "upEvDate", i) +
         galField("Short description", ev.description, "upEvDesc", i, "full") +

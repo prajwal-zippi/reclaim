@@ -30,13 +30,18 @@
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
+  /* uploaded images live at /api/image/... on the backend; prefix API_BASE so they
+     resolve whether the backend is same-origin or on a separate host. https links pass through. */
+  function resolveImg(u) { return (u && u.indexOf("/api/") === 0) ? API_BASE + u : u; }
 
   /* ---------- shop cards ---------- */
   function card(p, variant, revealClass) {
-    var art = ART[p.art] || ART.tote;
+    var media = p.imageUrl
+      ? '<img src="' + esc(resolveImg(p.imageUrl)) + '" alt="' + esc(p.name) + '" loading="lazy">'
+      : (ART[p.art] || ART.tote);
     var reveal = revealClass ? " " + revealClass : "";
     var inner =
-      '<div class="prod-art">' + art + "</div>" +
+      '<div class="prod-art' + (p.imageUrl ? " has-img" : "") + '">' + media + "</div>" +
       '<div class="prod-info">' +
       "<h4>" + esc(p.name) + "</h4>" +
       (p.price ? '<p class="prod-price">' + esc(p.price) + "</p>" : "") +
@@ -75,11 +80,12 @@
     if (!events.length) { grid.innerHTML = ""; if (empty) empty.style.display = "block"; return; }
     if (empty) empty.style.display = "none";
     grid.innerHTML = events.map(function (ev) {
+      var src = resolveImg(ev.imageUrl);
       var media = ev.imageUrl
-        ? '<img src="' + esc(ev.imageUrl) + '" alt="' + esc(ev.title) + '" loading="lazy">'
+        ? '<img src="' + esc(src) + '" alt="' + esc(ev.title) + '" loading="lazy">'
         : '<div class="gal-ph"><span>Photo coming soon</span></div>';
       var date = ev.date ? '<span class="gal-date">' + esc(ev.date) + "</span>" : "";
-      var attrs = ev.imageUrl ? ' has-img" data-full="' + esc(ev.imageUrl) + '" data-title="' + esc(ev.title) + '"' : '"';
+      var attrs = ev.imageUrl ? ' has-img" data-full="' + esc(src) + '" data-title="' + esc(ev.title) + '"' : '"';
       return '<article class="gal-card' + attrs + '>'
         + '<div class="gal-media">' + media + date + "</div>"
         + '<div class="gal-body"><h3>' + esc(ev.title) + "</h3>"
@@ -117,22 +123,36 @@
   var draft = null;
   try { draft = JSON.parse(localStorage.getItem(PREVIEW_KEY)); } catch (e) {}
 
+  var CACHE_KEY = "re-content-cache";
+  function applyLive(live) {
+    apply(
+      { products: live.products || staticData.products, stats: live.stats || staticData.stats, phone: live.phone || staticData.phone },
+      live.gallery || staticGallery
+    );
+  }
+
   if (draft && typeof draft === "object") {
     apply(draft, draft.gallery || staticGallery);
     showPreviewBanner();
   } else {
     apply(staticData, staticGallery);       // instant paint from static files
+    // instant paint from a cached copy of the live content (fast repeat visits)
+    try {
+      var cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+      if (cached && (cached.products || cached.stats || cached.phone || cached.gallery)) applyLive(cached);
+    } catch (e) {}
+    // revalidate from the backend and refresh the cache
     fetch(API_BASE + "/api/content", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (live) {
         if (live && (live.products || live.stats || live.phone || live.gallery)) {
-          apply(
-            { products: live.products || staticData.products, stats: live.stats || staticData.stats, phone: live.phone || staticData.phone },
-            live.gallery || staticGallery
-          );
+          applyLive(live);
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify(live)); } catch (e) {}
+        } else {
+          try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
         }
       })
-      .catch(function () {});               // offline / no backend → keep static
+      .catch(function () {});               // offline / no backend → keep static + cache
   }
 
   /* gallery lightbox (bind once) */

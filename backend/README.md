@@ -31,6 +31,8 @@ View pending ones in Neon:
 | POST | `/api/admin/change-password` | Requires token + current password; enforces the policy (8+ chars, upper, lower, digit, symbol) and stores the new hash |
 | GET | `/api/content` | Public: the live shop/gallery/stats/phone the site renders from |
 | POST | `/api/admin/content` | Admin-only (token): overwrite the live content in Neon |
+| POST | `/api/admin/upload` | Admin-only: store an uploaded JPEG/PNG in Neon, returns its `/api/image/<id>` URL |
+| GET | `/api/image/<id>` | Public: serves an uploaded image with a 1-year immutable cache header |
 | GET | `/api/health` | Liveness check |
 
 The ₹500 amount is defined **server-side only** (`LOGISTICS_FEE_PAISE`) — the client
@@ -117,6 +119,17 @@ on it because it renders the static files instantly and updates when the API res
 
 Other free options: **Koyeb** (free web service that doesn't sleep, runs `gunicorn app:app`),
 or **Fly.io** (free allowance, needs a card). Render works too but its free tier sleeps.
+
+## Speed & caching
+
+- Uploaded images (`/api/image/<id>`) are served with `Cache-Control: immutable` (each
+  upload has a unique id), so browsers and Vercel's CDN cache them for a year.
+- `/api/content` sends a short `max-age=60`; the site also caches the last content in the
+  browser (localStorage) and paints it instantly on repeat visits, then revalidates.
+- Admin uploads are compressed in the browser (max 1600px) before sending, so images
+  stay small and load fast.
+- CSS/JS are cache-busted with `?v=` on every build, so updates always reach visitors
+  while old assets stay cacheable.
 
 ## Go-live checklist
 - [ ] Razorpay KYC approved → switch `.env` to `rzp_live_...` keys

@@ -307,6 +307,9 @@ h1,h2,h3,.display{font-family:var(--font-display);font-weight:700;line-height:1.
 .prod-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-md)}
 .prod-card .prod-art{aspect-ratio:1/.9;display:grid;place-items:center;position:relative}
 .prod-card .prod-art svg{width:62%;height:62%;transition:transform .4s cubic-bezier(.2,.7,.3,1)}
+.prod-card .prod-art.has-img{display:block}
+.prod-card .prod-art.has-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s cubic-bezier(.2,.7,.3,1)}
+.prod-card:hover .prod-art.has-img img{transform:scale(1.05)}
 .prod-card:hover .prod-art svg{transform:translateY(-6px) rotate(-2deg)}
 .prod-card .prod-info{padding:22px 24px 26px;border-top:1px dashed var(--line)}
 .prod-card h4{font-family:var(--font-display);font-size:1.18rem;font-weight:650;margin-bottom:5px}
