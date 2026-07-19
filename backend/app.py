@@ -38,8 +38,9 @@ RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
 DATABASE_URL = os.environ.get("DATABASE_URL")  # Neon connection string (postgresql://...sslmode=require)
 ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "*")
 
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL must be set (your Neon connection string).")
+# NOTE: we do NOT crash the process when DATABASE_URL is missing — on a serverless
+# host that turns every request into an opaque 500. Instead the app boots and
+# /api/health reports what is wrong so it can be diagnosed from the browser.
 
 # Razorpay is OPTIONAL now that direct UPI is the primary payment path.
 # If keys are configured (never hardcoded), the gateway endpoints activate.
@@ -54,7 +55,7 @@ CURRENCY = "INR"
 # Signing key for session tokens. Set SECRET_KEY in production for stability
 # across DATABASE_URL rotations; falls back to a derivation of the DB URL.
 SECRET_KEY = os.environ.get("SECRET_KEY") or hashlib.sha256(
-    ("re-admin::" + DATABASE_URL).encode()
+    ("re-admin::" + (DATABASE_URL or "unset")).encode()
 ).hexdigest()
 TOKEN_TTL_SECONDS = 12 * 3600
 DEFAULT_ADMIN_PASSWORD = "Reclaim@2026"  # seeded once; must be changed after first login
@@ -166,6 +167,8 @@ MIGRATIONS = [
 ]
 
 try:
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL not set — skipping schema init")
     with db() as conn:
         conn.execute(SCHEMA)
         conn.execute(ADMIN_SCHEMA)
@@ -230,7 +233,20 @@ def clean(data):
 # ---------------------------------------------------------------- routes
 @app.get("/api/health")
 def health():
-    return jsonify({"ok": True, "razorpay_enabled": RAZORPAY_ENABLED})
+    db_connects = None
+    if DATABASE_URL:
+        try:
+            with db() as conn:
+                conn.execute("SELECT 1")
+            db_connects = True
+        except Exception as exc:
+            db_connects = "error: " + str(exc)[:180]
+    return jsonify({
+        "ok": True,
+        "database_url_set": bool(DATABASE_URL),
+        "database_connects": db_connects,
+        "razorpay_enabled": RAZORPAY_ENABLED,
+    })
 
 
 @app.post("/api/admin/login")
