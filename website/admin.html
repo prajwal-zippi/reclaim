@@ -90,11 +90,10 @@
 
 <main class="wrap">
   <div class="howto">
-    <b>How it works:</b> edit the shop, gallery, numbers or phone below — you can upload
-    photos or paste image links. When you are happy, press <b>Save &amp; publish to site</b>
-    in the bottom bar. Your changes are saved and go <b>live on the website immediately</b>
-    for everyone. (<b>Download backup</b> saves a copy you can keep, and the site keeps
-    working even if the server is briefly asleep.)
+    <b>How it works:</b> edit the shop, product photos (paste an image link), impact
+    numbers or phone below. When you are happy, press <b>Save &amp; publish</b> in the
+    bottom bar — it downloads an updated <b>site-data.js</b>. Put that file in the site's
+    <b>js/</b> folder (or send it to your web person) and the changes go live.
   </div>
 
   <section class="adm-section">
@@ -163,10 +162,10 @@
   </div>
 </div>
 
-<script src="js/config.js?v=3"></script>
-<script src="js/gallery-data.js?v=3"></script>
-<script src="js/site-data.js?v=3"></script>
-<script src="js/render.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
+<script src="js/gallery-data.js?v=4"></script>
+<script src="js/site-data.js?v=4"></script>
+<script src="js/render.js?v=4"></script>
 <script>
 (function () {
   "use strict";
@@ -177,6 +176,8 @@
     ? "http://localhost:5001"
     : (window.RE_API_BASE || "");
   var TOKEN_KEY = "re-admin-token";
+  var HAS_BACKEND = window.RE_HAS_BACKEND !== false;  // false = pure-static (download to publish)
+  var FALLBACK_PASSCODE = "Reclaim@2026";  // used in pure-static mode; change it
 
   var gate = document.getElementById("gate");
   var passError = document.getElementById("passError");
@@ -203,6 +204,15 @@
 
   window.tryPass = function () {
     passError.style.display = "none";
+    if (!HAS_BACKEND) {
+      if (document.getElementById("passInput").value === FALLBACK_PASSCODE) {
+        sessionStorage.setItem(TOKEN_KEY, "local");
+        gate.remove(); if (window.__enterDashboard) window.__enterDashboard();
+      } else {
+        gateError("That password is not right. Try again.");
+      }
+      return;
+    }
     fetch(API_BASE + "/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -338,6 +348,7 @@
     reader.readAsDataURL(file);
   }
   function uploadImage(file, done) {
+    if (!HAS_BACKEND) { done(null, "Photo upload needs the backend. Paste an image link (https…) in the field instead."); return; }
     var token = sessionStorage.getItem(TOKEN_KEY);
     if (!token || token === "local") { done(null, "Uploads need the backend running / server login."); return; }
     compressImage(file, 1600, function (dataUrl, err) {
@@ -387,9 +398,13 @@
 
   /* load the LIVE content from Neon (fallback to the static files) */
   function loadLive() {
-    statusEl.textContent = "Loading current content…";
     seedFrom(window.RE_DATA || {});   // instant baseline
     renderAll();
+    if (!HAS_BACKEND) {
+      statusEl.textContent = "Editing the site content. Press ‘Save & publish’ to download the updated file.";
+      return;
+    }
+    statusEl.textContent = "Loading current content…";
     fetch(API_BASE + "/api/content", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (live) {
@@ -543,6 +558,11 @@
 
   /* ------- publish ------- */
   window.saveToSite = function () {
+    if (!HAS_BACKEND) {
+      window.downloadPublish();
+      statusEl.textContent = "Downloaded site-data.js — replace it in the site's js/ folder to publish (or send it to your web person).";
+      return;
+    }
     var token = sessionStorage.getItem(TOKEN_KEY);
     if (!token || token === "local") {
       statusEl.textContent = "Saving to the site needs the backend running / server login.";

@@ -134,6 +134,8 @@
   if (draft && typeof draft === "object") {
     apply(draft, draft.gallery || staticGallery);
     showPreviewBanner();
+  } else if (window.RE_HAS_BACKEND === false) {
+    apply(staticData, staticGallery);       // pure-static: the files are the source of truth
   } else {
     apply(staticData, staticGallery);       // instant paint from static files
     // instant paint from a cached copy of the live content (fast repeat visits)
