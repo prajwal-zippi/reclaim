@@ -1,12 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/index.py", "use": "@vercel/python", "config": { "includeFiles": "backend/**" } },
-    { "src": "website/**", "use": "@vercel/static" }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index.py" },
-    { "src": "/", "dest": "/website/index.html" },
-    { "src": "/(.*)", "dest": "/website/$1" }
+  "rewrites": [
+    { "source": "/", "destination": "/website/index.html" },
+    { "source": "/((?!api/).*)", "destination": "/website/$1" }
   ]
 }
