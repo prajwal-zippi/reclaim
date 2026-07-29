@@ -589,9 +589,9 @@ h1,h2,h3,.display{font-family:var(--font-display);font-weight:700;line-height:1.
 /* ---------- footer ---------- */
 .footer{background:#1B4D38;color:rgba(255,255,255,.82);margin-top:96px;position:relative;overflow:hidden}
 .footer-cta{background:#164330}
-.footer::before{content:"";position:absolute;right:-120px;top:-120px;width:380px;height:380px;border:2px dashed rgba(0,191,99,.22);border-radius:50%}
+.footer::before{content:"";position:absolute;right:-120px;top:-120px;width:380px;height:380px;border:2px dashed rgba(0,191,99,.22);border-radius:50%;pointer-events:none}
 .footer-cta{border-bottom:1px solid rgba(255,255,255,.12);padding:56px 0}
-.footer-cta .wrap{display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap}
+.footer-cta .wrap{display:flex;justify-content:space-between;align-items:center;gap:32px;flex-wrap:wrap;position:relative;z-index:2}
 .footer-cta h3{color:#fff;font-size:1.75rem;max-width:420px}
 .footer-cta h3 em{font-style:normal;color:var(--green)}
 .newsletter{display:flex;gap:10px;flex:1;max-width:460px;min-width:290px}
