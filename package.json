@@ -1,0 +1,12 @@
+{
+  "name": "reclaim-era",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Reclaim Era static website with Netlify Functions and Neon content management",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.1"
+  }
+}

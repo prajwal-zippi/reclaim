@@ -8,5 +8,5 @@
      true  = a backend is deployed (Neon live-save + image uploads). Also set
              RE_API_BASE to the backend URL, or "" if it is on the same domain.
    ============================================================ */
-window.RE_HAS_BACKEND = false;
+window.RE_HAS_BACKEND = true;
 window.RE_API_BASE = "";

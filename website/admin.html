@@ -228,17 +228,7 @@
         }
       })
       .catch(function () {
-        /* Pure-static fallback: no backend running. Accept a local passcode so the
-           dashboard still works on static hosting. CHANGE THIS passcode. Note: a
-           client-side passcode is convenience-only (readable in source) — keep the
-           /admin.html URL private. Run the backend for real server-verified login. */
-        var FALLBACK_PASSCODE = "Reclaim@2026";
-        if (document.getElementById("passInput").value === FALLBACK_PASSCODE) {
-          sessionStorage.setItem(TOKEN_KEY, "local");
-          gate.remove(); if (window.__enterDashboard) window.__enterDashboard();
-        } else {
-          gateError("That password is not right. Try again.");
-        }
+        gateError("Could not reach the secure admin service. Please try again in a moment.");
       });
   };
   document.getElementById("passInput").addEventListener("keydown", function (e) {
@@ -450,7 +440,7 @@
         '<div class="field"><label>Artwork (used if no photo)</label><select onchange="upArt(' + i + ', this.value)">' + opts + "</select></div>" +
         '<div class="field full"><label>Product photo — upload JPEG/PNG (optional, replaces artwork)</label><input type="file" accept="image/png,image/jpeg" onchange="pickProdImg(event,' + i + ')"></div>' +
         field("…or paste a photo link (https), clear to use artwork", p.imageUrl, "upImg", i, "full") +
-        field("Price (optional, e.g. ₹799)", p.price, "upPrice", i) +
+        field("Price / pricing note (e.g. ₹799 or Price on request)", p.price || "Price on request", "upPrice", i) +
         field("Impact line (e.g. Funds 10 notebooks)", p.impact, "upImpact", i) +
         field("Short description", p.desc, "upDesc", i, "full") +
         '<div class="pe-toolbar">' +
@@ -488,7 +478,7 @@
       id: "product-" + Date.now(),
       name: "New product",
       art: "tote",
-      price: "",
+      price: "Price on request",
       impact: "",
       desc: "",
       visible: true

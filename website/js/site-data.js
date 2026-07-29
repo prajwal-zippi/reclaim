@@ -16,7 +16,7 @@ window.RE_DATA = {
       "id": "denim-tote",
       "name": "Denim Tote",
       "art": "tote",
-      "price": "",
+      "price": "Price on request",
       "impact": "Funds 1 teacher for a week",
       "desc": "Reclaimed denim, reinforced handles. Stitched by a Batch-1 EmpowHer artisan.",
       "visible": true
@@ -25,7 +25,7 @@ window.RE_DATA = {
       "id": "canvas-backpack",
       "name": "Canvas Backpack",
       "art": "backpack",
-      "price": "",
+      "price": "Price on request",
       "impact": "Funds 10 notebooks",
       "desc": "Heavy canvas body with reclaimed lining. Fits a 15\" laptop.",
       "visible": true
@@ -34,7 +34,7 @@ window.RE_DATA = {
       "id": "corporate-organizer",
       "name": "Corporate Organizer",
       "art": "organizer",
-      "price": "",
+      "price": "Price on request",
       "impact": "Funds a school workshop",
       "desc": "Folio-style organizer with pen loop, a conference favourite.",
       "visible": true
@@ -43,7 +43,7 @@ window.RE_DATA = {
       "id": "gift-bundle",
       "name": "Gift Bundle",
       "art": "bundle",
-      "price": "",
+      "price": "Price on request",
       "impact": "Funds a student's supplies",
       "desc": "A curated set with a story card about the artisan who made it.",
       "visible": true

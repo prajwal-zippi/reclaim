@@ -78,19 +78,19 @@
             <h3 style="font-size:1.4rem;margin-bottom:22px">Where will the campaign run?</h3>
             <div class="form-grid">
               <div class="field full"><label for="cf-type">Type of location <span>*</span></label>
-                <select id="cf-type" required><option value="">Select…</option><option>Apartment Complex</option><option>Companies</option><option>School</option><option>College/University</option><option>Small/Medium Business (SMB)</option><option>Restaurants/GYM/Hotels/Super Markets/Malls</option><option>Other</option></select>
+                <select id="cf-type" name="location_type" required><option value="">Select…</option><option>Apartment Complex</option><option>Companies</option><option>School</option><option>College/University</option><option>Small/Medium Business (SMB)</option><option>Restaurants/GYM/Hotels/Super Markets/Malls</option><option>Other</option></select>
                 <p class="field-error">Choose the type of location.</p>
               </div>
               <div class="field full" id="otherWrap" style="display:none"><label for="cf-other">Please specify the location type <span>*</span></label>
-                <input id="cf-other" type="text" placeholder="Tell us what kind of place it is">
+                <input id="cf-other" name="location_other" type="text" placeholder="Tell us what kind of place it is">
                 <p class="field-error">Tell us what kind of location this is.</p>
               </div>
               <div class="field full"><label for="cf-name">Name of the institution / apartment complex <span>*</span></label>
-                <input id="cf-name" type="text" placeholder="e.g. Green Meadows Apartments" required>
+                <input id="cf-name" name="institution_name" type="text" placeholder="e.g. Green Meadows Apartments" required>
                 <p class="field-error">Enter the name of the institution or apartment complex.</p>
               </div>
               <div class="field full"><label for="cf-address">Complete address for the campaign <span>*</span></label>
-                <textarea id="cf-address" placeholder="Building / street / area / city / PIN" required></textarea>
+                <textarea id="cf-address" name="campaign_address" placeholder="Building / street / area / city / PIN" required></textarea>
                 <p class="field-error">Enter the complete address, including area and PIN code.</p>
               </div>
             </div>
@@ -101,15 +101,15 @@
             <h3 style="font-size:1.4rem;margin-bottom:22px">Who should we coordinate with?</h3>
             <div class="form-grid">
               <div class="field full"><label for="cf-contact">Coordinator / contact person name <span>*</span></label>
-                <input id="cf-contact" type="text" placeholder="Full name" required>
+                <input id="cf-contact" name="coordinator_name" type="text" placeholder="Full name" required>
                 <p class="field-error">Enter the coordinator or contact person's name.</p>
               </div>
               <div class="field"><label for="cf-phone">Contact phone number <span>*</span></label>
-                <input id="cf-phone" type="tel" placeholder="+91 98765 43210" required>
+                <input id="cf-phone" name="coordinator_phone" type="tel" placeholder="+91 98765 43210" inputmode="tel" required>
                 <p class="field-error">Enter a valid Indian mobile number.</p>
               </div>
               <div class="field"><label for="cf-email">Contact email <span>*</span></label>
-                <input id="cf-email" type="email" placeholder="you@example.com" required>
+                <input id="cf-email" name="coordinator_email" type="email" placeholder="you@example.com" inputmode="email" required>
                 <p class="field-error">Enter a valid email address.</p>
               </div>
             </div>
@@ -128,7 +128,7 @@
               <button type="button" class="btn btn-outline" id="back3">Back</button>
               <a class="btn btn-green btn-lg" id="paySubmit" href="https://u.payu.in/PAYUMN/VruLo2FzWNlU" target="_blank" rel="noopener noreferrer">Continue to secure payment &#8599;</a>
             </div>
-          </div>          </div>
+          </div>
 
           <div class="form-error" id="campaignError" role="alert"><span data-msg></span></div>
         </form>

@@ -18,9 +18,13 @@ venv/
 backend/venv/
 backend/.venv/
 backend/__pycache__/
+node_modules/
 
 # Environment variables
 .env
 .env.local
 .env.*.local
 backend/.env
+
+# Local Netlify folder
+.netlify
