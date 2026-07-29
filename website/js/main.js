@@ -147,8 +147,8 @@
   /* current year */
   document.querySelectorAll("[data-year]").forEach((el) => (el.textContent = new Date().getFullYear()));
 
-  /* Razorpay payment links: friendly guard until the real links are pasted in.
-     The campaign page's pay button (#paySubmit) handles itself, so skip it here. */
+  /* Safety guard retained for any future external payment link placeholders.
+     The campaign page's PayU button handles itself, so skip it here. */
   function reToast(msg) {
     var t = document.createElement("div");
     t.textContent = msg;

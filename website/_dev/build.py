@@ -87,11 +87,11 @@ BUNDLE = '''<svg viewBox="0 0 200 200" aria-hidden="true">
 </svg>'''
 
 # ---------------------------------------------------------------- shell
-# ---- Razorpay Payment Links (PASTE the real links from the client here) ----
-# Create these in the Razorpay Dashboard -> Payment Links. Use one that lets the
-# donor enter any amount for donations, and one (min Rs.500) for the campaign fee.
-RZP_DONATE = "REPLACE_WITH_RAZORPAY_DONATE_LINK"
-RZP_CAMPAIGN = "REPLACE_WITH_RAZORPAY_CAMPAIGN_LINK"
+# ---- Client-approved external links ----
+DONATE_FORM_LINK = "https://www.jotform.com/form/251804531575457"
+PAYMENT_LINK = "https://u.payu.in/PAYUMN/VruLo2FzWNlU"
+GALLERY_LINK = "https://sites.google.com/view/reclaimeragallery/photo-gallery"
+SCHOOL_PARTNER_LINK = "https://forms.gle/ua8hbGynPNLs3RBm7"
 
 FONTS = '''<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -154,7 +154,7 @@ def header(active=""):
       <li><a{cls("contact")} href="contact.html">Contact</a></li>
     </ul>
     <div class="header-cta">
-      <a href="{RZP_DONATE}" target="_blank" rel="noopener noreferrer" data-razorpay class="btn btn-terra btn-sm btn-donate-top">Donate</a>
+      <a href="{DONATE_FORM_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-terra btn-sm btn-donate-top">Donate</a>
       <a href="request-pickup.html" class="btn btn-green btn-sm">Request Pick-Up</a>
       <button class="nav-toggle" aria-label="Menu" aria-expanded="false">
         <svg class="icon-burger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -165,7 +165,7 @@ def header(active=""):
 </header>
 <div class="mobile-bar">
   <a href="request-pickup.html" class="mb-pickup">Pick-Up</a>
-  <a href="{RZP_DONATE}" target="_blank" rel="noopener noreferrer" data-razorpay class="mb-donate">Donate</a>
+  <a href="{DONATE_FORM_LINK}" target="_blank" rel="noopener noreferrer" class="mb-donate">Donate</a>
   <a href="shop.html" class="mb-shop">Shop</a>
 </div>'''
 
@@ -175,18 +175,22 @@ FOOTER = f'''
     <div class="wrap">
       <h3>Get monthly <em>impact reports</em> &amp; event invites.</h3>
       <form class="newsletter" action="https://formsubmit.co/reclaimera@gmail.com" method="POST">
-        <input type="hidden" name="_subject" value="New newsletter signup (reclaimera.in)"><input type="hidden" name="form_type" value="Newsletter signup"><input type="hidden" name="_captcha" value="false"><input type="hidden" name="_template" value="table"><input type="text" name="_honey" style="display:none" tabindex="-1" aria-hidden="true">
+        <input type="hidden" name="_subject" value="New Reclaim Era newsletter subscription">
+        <input type="hidden" name="form_type" value="Newsletter subscription">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+        <input type="text" name="_honey" style="display:none" tabindex="-1" aria-hidden="true">
         <input type="email" name="email" placeholder="Your email address" aria-label="Email address" required>
         <button class="btn btn-green" type="submit">Subscribe</button>
-        <div class="form-success" role="status"><span>Thank you, you are subscribed. See you in the next report!</span></div>
-        <div class="form-error" role="alert"><span data-msg>Could not subscribe right now. Please try again in a minute.</span></div>
+        <div class="form-success" role="status"><span>Thank you! Your subscription request has been sent.</span></div>
+        <div class="form-error" role="alert"><span data-msg>We could not subscribe you right now. Please email reclaimera@gmail.com.</span></div>
       </form>
     </div>
   </div>
   <div class="footer-main">
     <div class="wrap">
       <div class="footer-brand">
-        <span class="wordmark wm-light">re<span class="k">cla</span><span class="di">&#305;<i></i></span><span class="k">m</span> <span class="t">era</span><span class="dot">.</span></span>
+        <span class="wordmark wm-light">re<span class="k">cla</span><span class="footer-i">i</span><span class="k">m</span> <span class="t">era</span><span class="dot">.</span></span>
         <p>We transform Bengaluru's discarded textiles and household items into education, green livelihoods, and a cleaner environment.</p>
         <div class="sdg-row" style="margin-top:18px">
           <span class="sdg s4">SDG 4</span><span class="sdg s8">SDG 8</span><span class="sdg s12">SDG 12</span><span class="sdg s13">SDG 13</span>
@@ -206,7 +210,7 @@ FOOTER = f'''
           <li><a href="campaign-application.html">Host a Campaign</a></li>
           <li><a href="zero-waste-certification.html">Zero Waste Certification</a></li>
           <li><a href="resources.html">Resources</a></li>
-          <li><a href="gallery.html">Gallery &amp; Events</a></li>
+          <li><a href="{GALLERY_LINK}" target="_blank" rel="noopener noreferrer">Gallery &amp; Events</a></li>
           <li><a href="contact.html">Contact</a></li>
         </ul>
       </div>
@@ -357,11 +361,32 @@ home_body = f'''
       </a>
       <a href="csr-partnerships.html" class="init-card t-gold reveal reveal-d3">
         <div class="icon-chip bg-gold-t">{I["handshake"]}</div>
-        <span class="metric">20 corporate programs</span>
+        <span class="metric">5 corporate programs</span>
         <h3>CSR Partnerships</h3>
         <p>Tailored corporate programs that convert waste into verified ESG outcomes and employee engagement.</p>
         <span class="arrow-btn">{I["arrow"]}</span>
       </a>
+    </div>
+  </div>
+</section>
+
+<section class="section impact-now">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Impact from 2025 to date</p>
+      <h2>Progress you can count.</h2>
+      <p>Each number represents resources kept in use, practical environmental learning, or a stronger livelihood.</p>
+    </div>
+    <div class="impact-grid">
+      <div class="impact-card reveal"><b>22K+</b><span>reusable and household items diverted and donated</span></div>
+      <div class="impact-card reveal reveal-d1"><b>13</b><span>entrepreneurship and green-job training programmes for women</span></div>
+      <div class="impact-card reveal reveal-d2"><b>3</b><span>government schools reached through environmental education</span></div>
+      <div class="impact-card reveal"><b>1</b><span>government-aided school with biogas and compost systems installed</span></div>
+      <div class="impact-card reveal reveal-d1"><b>5</b><span>waste-management corporate volunteer engagement programmes</span></div>
+      <div class="impact-card reveal reveal-d2"><b>600</b><span>upcycled and new school bags donated</span></div>
+      <div class="impact-card reveal"><b>83</b><span>bicycles donated to government-school students</span></div>
+      <div class="impact-card reveal reveal-d1"><b>3</b><span>zero-waste awareness marathons conducted</span></div>
+      <div class="impact-card reveal reveal-d2"><b>2,000</b><span>reusable and new notebooks donated</span></div>
     </div>
   </div>
 </section>
@@ -398,7 +423,7 @@ home_body = f'''
         <p>Turn your campus into a zero-waste campus with a free baseline audit.</p>
         <span class="fake-btn">Book a Waste Audit {I["arrow"]}</span>
       </a>
-      <a href="education.html" class="action-card a-blue reveal reveal-d1">
+      <a href="{SCHOOL_PARTNER_LINK}" target="_blank" rel="noopener noreferrer" class="action-card a-blue reveal reveal-d1">
         <span class="tag">For schools</span>
         <h3>Partner Your School</h3>
         <p>Bring the NEP 2020-aligned environmental curriculum to your students.</p>
@@ -500,13 +525,13 @@ about_body = page_hero(
       <div class="team-card reveal">
         <div class="avatar" style="background:linear-gradient(140deg,var(--blue),#02157e)">JR</div>
         <h4>Jaganathan Rajagopal</h4>
-        <p class="role" style="color:var(--blue)">Founder &amp; CEO</p>
+        <p class="role" style="color:var(--blue)">Founder &amp; Mentor</p>
         <p>Building the bridge between Bengaluru's waste problem and its education gap.</p>
       </div>
       <div class="team-card reveal reveal-d1">
         <div class="avatar" style="background:linear-gradient(140deg,var(--green),#066B3C)">DT</div>
         <h4>Divya Tejaswini</h4>
-        <p class="role" style="color:var(--green-deep)">Head of Networking &amp; Outreach</p>
+        <p class="role" style="color:var(--green-deep)">CEO · Networking &amp; Outreach</p>
         <p>Connecting RWAs, campuses, and corporates into one collection network.</p>
       </div>
       <div class="team-card reveal reveal-d2">
@@ -616,7 +641,7 @@ education_body = page_hero(
     '<a href="initiatives.html">Our Initiatives</a><span class="sep">/</span><span>Education (NEP 2020)</span>',
     'Environmental education, <span style="color:var(--blue)">hands-on.</span>',
     "Move from textbook theory to real-world action with a year-long curriculum aligned to NEP 2020 and NCF 2023.",
-    f'<a href="contact.html" class="btn btn-green">Partner Your School {I["arrow"]}</a>'
+    f'<a href="{SCHOOL_PARTNER_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-green">Partner Your School {I["arrow"]}</a>'
 ) + f'''
 <section class="section" style="padding-top:40px">
   <div class="wrap">
@@ -627,7 +652,7 @@ education_body = page_hero(
     <div class="feat-grid">
       {feat(I["spark"], "bg-blue-t", "Interactive workshops", "Project-based learning that turns waste literacy into a school-year adventure.")}
       {feat(I["shield"], "bg-green-t", "Student-led Zero Waste Audits", "Students audit their own campus and run on-site Revive Stations.", "reveal-d1")}
-      {feat(I["grad"], "bg-terra-t", "Teacher training", "Educators get full training and materials, aligned to NEP 2020 &amp; NCF 2023.", "reveal-d2")}
+      {feat(I["grad"], "bg-terra-t", "Environmental Education", "Educators receive practical environmental-learning materials aligned to NEP 2020 &amp; NCF 2023.", "reveal-d2")}
     </div>
   </div>
 </section>
@@ -650,7 +675,7 @@ education_body = page_hero(
         <ul>
           <li>{I["check"]}<span>A 1-year, ready-to-run environmental curriculum</span></li>
           <li>{I["check"]}<span>On-campus Revive Station set-up and signage</span></li>
-          <li>{I["check"]}<span>Teacher training and ongoing support</span></li>
+          <li>{I["check"]}<span>Environmental Education resources and ongoing support</span></li>
           <li>{I["check"]}<span>Student zero-waste audit toolkits</span></li>
           <li>{I["check"]}<span>End-of-year impact certificate for the school</span></li>
         </ul>
@@ -661,7 +686,7 @@ education_body = page_hero(
 ''' + cta_band(
     'Bring the program to <em>your school.</em>',
     "NEP 2020-aligned, teacher-friendly, and loved by students. Onboarding takes under two weeks.",
-    f'<a href="contact.html" class="btn btn-green btn-lg">Partner Your School {I["arrow"]}</a>'
+    f'<a href="{SCHOOL_PARTNER_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-green btn-lg">Partner Your School {I["arrow"]}</a>'
 )
 
 # ================================================================ EMPOWHER
@@ -688,24 +713,14 @@ empowher_body = page_hero(
 <section class="section" style="background:var(--cream-2)">
   <div class="wrap">
     <div class="section-head center">
-      <p class="eyebrow">Stories of change</p>
-      <h2>13 livelihoods and counting.</h2>
+      <p class="eyebrow">Impact to date</p>
+      <h2>Skills that lead to livelihoods.</h2>
     </div>
-    <div class="feat-grid">
-      <div class="feat-card reveal" style="border-top:4px solid var(--terra)">
-        <p style="font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--ink);margin-bottom:14px">"The first thing I bought with my own earnings was a school bag for my daughter, one I stitched myself."</p>
-        <p style="font-size:.85rem"><b style="color:var(--ink)">EmpowHer artisan</b> · Batch 1, Kogilu hub</p>
-      </div>
-      <div class="feat-card reveal reveal-d1" style="border-top:4px solid var(--blue)">
-        <p style="font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--ink);margin-bottom:14px">"I came for the sewing machine. I stayed for the laptop. Now I photograph and list my own products."</p>
-        <p style="font-size:.85rem"><b style="color:var(--ink)">EmpowHer artisan</b> · Digital skills track</p>
-      </div>
-      <div class="feat-card reveal reveal-d2" style="border-top:4px solid var(--green)">
-        <p style="font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--ink);margin-bottom:14px">"Denim that people threw away pays my rent now. Nothing is waste. That is what we prove every day."</p>
-        <p style="font-size:.85rem"><b style="color:var(--ink)">EmpowHer artisan</b> · Production lead</p>
-      </div>
+    <div class="impact-grid impact-grid-compact">
+      <div class="impact-card reveal"><b>13</b><span>entrepreneurship-development and green-job training programmes for women</span></div>
+      <div class="impact-card reveal reveal-d1"><b>600</b><span>upcycled and new school bags created and donated</span></div>
+      <div class="impact-card reveal reveal-d2"><b>Digital + craft</b><span>tailoring, product development, digital literacy and market-readiness skills</span></div>
     </div>
-    <p style="text-align:center;margin-top:30px;color:var(--ink-soft);font-size:.9rem">Impact metric: graduates report a meaningful monthly income uplift within their first production season.</p>
   </div>
 </section>
 ''' + cta_band(
@@ -746,7 +761,7 @@ csr_body = page_hero(
         <li><span><b>Community collection drives:</b> company-branded neighbourhood drives.</span></li>
         <li><span><b>Masterclasses and Lunch-and-Learn:</b> on-site upcycling and circularity sessions.</span></li>
       </ul>
-      <p style="margin-top:10px"><b>20 corporate-led volunteer programs</b> delivered so far, on the way to 60 by 2030.</p>
+      <p style="margin-top:10px"><b>5 waste-management-based corporate volunteer engagement programmes</b> delivered so far, on the way to 60 by 2030.</p>
     </div>
     <div class="reveal reveal-d1">
       <div class="info-panel" style="position:static">
@@ -758,6 +773,21 @@ csr_body = page_hero(
           <li>{I["check"]}<span><b>4. Reporting:</b> quantified impact, certificates and 80G receipts</span></li>
         </ul>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="section csr-partners">
+  <div class="wrap">
+    <div class="section-head center">
+      <p class="eyebrow">CSR partners</p>
+      <h2>Partners helping turn intent into impact.</h2>
+    </div>
+    <div class="partner-grid">
+      <div class="partner-card"><img src="assets/partners/green-path-run-for-trees.png" alt="Green Path Run For Trees logo"><span>Green Path · Run For Trees</span></div>
+      <div class="partner-card"><img src="assets/partners/stick-to-safety-quality.png" alt="Stick to Safety and Quality logo"><span>Stick To Safety And Quality</span></div>
+      <div class="partner-card"><img src="assets/partners/oracle.png" alt="Oracle logo"><span>Oracle</span></div>
+      <div class="partner-card"><img src="assets/partners/rotary.png" alt="Rotary logo"><span>Rotary</span></div>
     </div>
   </div>
 </section>
@@ -816,9 +846,12 @@ shop_body = page_hero(
 pickup_body = page_hero(
     '<span>Request a Pick-Up</span>',
     'Request a <span style="color:var(--green-deep)">pick-up.</span>',
-    "Schedule a contactless collection. We will sort, sanitise and divert your items to reuse or upcycling, free across Bengaluru."
+    "If you cannot make it to a centre, we can collect eligible clothes, textiles and household items from your doorstep in Bengaluru. Pickup is charged at cost based on the load, vehicle and distance."
 ) + f'''
 <section class="section" style="padding-top:30px">
+  <div class="wrap pickup-intro">
+    <p>Everything collected is sorted for reuse, upcycling or recycling, just like items dropped at a centre. Pack your items and confirm eligibility with our team before scheduling.</p>
+  </div>
   <div class="wrap two-col form-layout">
     <div class="form-card reveal">
       <h3 style="font-size:1.5rem;margin-bottom:26px">Schedule your collection</h3>
@@ -850,10 +883,12 @@ pickup_body = page_hero(
       <div class="info-panel reveal reveal-d1">
         <h3>Good to know</h3>
         <ul>
-          <li>{I["check"]}<span><b>Areas covered:</b> all of Bengaluru, from Yelahanka to Electronic City</span></li>
+          <li>{I["check"]}<span><b>Two-wheeler:</b> hand-picked loads up to 10 kg cost ₹200 within 5 km, then ₹20 per additional km</span></li>
+          <li>{I["check"]}<span><b>Three or four-wheeler:</b> ₹600 within a 5 km radius</span></li>
+          <li>{I["check"]}<span><b>Distance:</b> measured from RK Hegde Nagar and Kogilu</span></li>
           <li>{I["check"]}<span><b>Turnaround:</b> slot confirmed within 24 hours; pick-up usually within 3–5 days</span></li>
           <li>{I["check"]}<span><b>We accept:</b> clothes, textiles, household items, toys, books &amp; stationery</span></li>
-          <li>{I["check"]}<span><b>Contactless:</b> leave labelled bags at your door and we handle the rest</span></li>
+          <li>{I["check"]}<span><b>Important:</b> items must be clean, dry and properly packed; confirm eligibility before scheduling</span></li>
           <li>{I["check"]}<span><b>Receipts:</b> donation receipts eligible under sections 12A &amp; 80G</span></li>
         </ul>
         <div class="contact-line">{I["phone"]}<a href="tel:+918152020145" data-phone>+91 81520 20145</a></div>
@@ -915,10 +950,10 @@ zero_body = page_hero(
       <h2>Four bins. Zero confusion.</h2>
     </div>
     <div class="bin-grid">
-      <div class="bin green reveal"><div class="bin-dot">{I["leaf"]}</div><h4>Green Bin</h4><span class="cat">Wet · Biodegradable</span><p>Food scraps and garden waste, composted instead of dumped.</p></div>
-      <div class="bin blue reveal reveal-d1"><div class="bin-dot">{I["recycle"]}</div><h4>Blue Bin</h4><span class="cat">Dry · Recyclable</span><p>Paper, plastics and glass, routed to recyclers.</p></div>
-      <div class="bin red reveal reveal-d2"><div class="bin-dot">{I["warn"]}</div><h4>Red Bin</h4><span class="cat">Domestic Hazardous</span><p>Batteries, bulbs and e-waste, handled by authorised processors.</p></div>
-      <div class="bin black reveal reveal-d3"><div class="bin-dot">{I["trash"]}</div><h4>Black Bin</h4><span class="cat">Reject · Other</span><p>Sanitary waste and contaminated plastics, minimised over time.</p></div>
+      <div class="bin green reveal"><div class="bin-dot">{I["leaf"]}</div><h4>Green Bin</h4><span class="cat">Wet · Biodegradable Waste</span><p>Food waste, fruit and vegetable peels, cooked food, tea leaves, flowers and garden waste.</p></div>
+      <div class="bin blue reveal reveal-d1"><div class="bin-dot">{I["recycle"]}</div><h4>Blue Bin</h4><span class="cat">Dry · Recyclable Waste</span><p>Paper, cardboard, plastic, metal, glass, cartons and clean, dry textiles.</p></div>
+      <div class="bin red reveal reveal-d2"><div class="bin-dot">{I["warn"]}</div><h4>Red Bin</h4><span class="cat">Sanitary · Reject Waste</span><p>Sanitary pads, diapers, tampons, bandages, cotton, masks, gloves and soiled tissues.</p></div>
+      <div class="bin black reveal reveal-d3"><div class="bin-dot">{I["trash"]}</div><h4>Black Bin</h4><span class="cat">Special Care · Domestic Hazardous</span><p>Batteries, expired medicines, paint and chemical containers, CFLs, tube lights, bulbs and e-waste.</p></div>
     </div>
   </div>
 </section>
@@ -963,7 +998,7 @@ involved_body = page_hero(
         <span class="metric">12A &amp; 80G tax-exempt</span>
         <h3>Donate</h3>
         <p>One-time or monthly giving that funds teacher salaries, notebooks and school infrastructure through LEACT.</p>
-        <a href="{RZP_DONATE}" target="_blank" rel="noopener noreferrer" data-razorpay class="btn btn-terra" style="margin-top:auto;align-self:flex-start">Donate Now {I["arrow"]}</a>
+        <a href="{DONATE_FORM_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-terra" style="margin-top:auto;align-self:flex-start">Donate Now {I["arrow"]}</a>
       </div>
       <div class="init-card t-green reveal" id="donate-equipment">
         <div class="icon-chip bg-green-t">{I["laptop"]}</div>
@@ -990,10 +1025,10 @@ resources_body = page_hero(
 <section class="section" style="padding-top:30px">
   <div class="wrap">
     <div class="res-grid">
-      <a href="#" class="res-card reveal"><div class="icon-chip bg-green-t">{I["book"]}</div><div><h4>Blog</h4><p>How-to guides, upcycling tutorials, and classroom activity ideas.</p><span class="text-link">Read articles {I["arrow"]}</span></div></a>
-      <a href="#" class="res-card reveal reveal-d1"><div class="icon-chip bg-blue-t">{I["file"]}</div><div><h4>Reports &amp; Impact</h4><p>The annual impact report: items diverted, livelihoods created and rupees routed to education.</p><span class="text-link">Download report {I["arrow"]}</span></div></a>
-      <a href="#" class="res-card reveal reveal-d2"><div class="icon-chip bg-terra-t">{I["spark"]}</div><div><h4>Case Studies</h4><p>Corporate audits, school partnerships, and EmpowHer success stories in detail.</p><span class="text-link">Browse case studies {I["arrow"]}</span></div></a>
-      <a href="#" class="res-card reveal reveal-d3"><div class="icon-chip bg-gold-t">{I["camera"]}</div><div><h4>Media Kit &amp; Press</h4><p>Logos, photography, boilerplate, and press releases for journalists and partners.</p><span class="text-link">Get the kit {I["arrow"]}</span></div></a>
+      <a href="https://reclaimera.blogspot.com/" target="_blank" rel="noopener noreferrer" class="res-card reveal"><div class="icon-chip bg-green-t">{I["book"]}</div><div><h4>Blog</h4><p>How-to guides, upcycling tutorials, and classroom activity ideas.</p><span class="text-link">Read articles {I["arrow"]}</span></div></a>
+      <a href="https://sites.google.com/view/reportsandimpacts/home" target="_blank" rel="noopener noreferrer" class="res-card reveal reveal-d1"><div class="icon-chip bg-blue-t">{I["file"]}</div><div><h4>Reports &amp; Impact</h4><p>Items diverted, livelihoods created and support routed to education.</p><span class="text-link">View reports {I["arrow"]}</span></div></a>
+      <a href="https://sites.google.com/view/casestudiesandstories/home" target="_blank" rel="noopener noreferrer" class="res-card reveal reveal-d2"><div class="icon-chip bg-terra-t">{I["spark"]}</div><div><h4>Case Studies</h4><p>Corporate audits, school partnerships, and EmpowHer stories in detail.</p><span class="text-link">Browse case studies {I["arrow"]}</span></div></a>
+      <a href="https://sites.google.com/view/mediakitsandpress/home" target="_blank" rel="noopener noreferrer" class="res-card reveal reveal-d3"><div class="icon-chip bg-gold-t">{I["camera"]}</div><div><h4>Media Kit &amp; Press</h4><p>Logos, photography, boilerplate and press coverage for journalists and partners.</p><span class="text-link">Get the kit {I["arrow"]}</span></div></a>
     </div>
   </div>
 </section>
@@ -1006,7 +1041,7 @@ resources_body = page_hero(
     </div>
     <div class="accordion">
       <div class="acc-item"><button class="acc-btn" aria-expanded="false">What items do you accept for pick-up?<span class="plus">+</span></button><div class="acc-body"><p>Clothes and textiles in any condition, household items, toys, books, and stationery. Wearables are sanitised and donated; the rest is upcycled or recycled. Nothing goes to landfill.</p></div></div>
-      <div class="acc-item"><button class="acc-btn" aria-expanded="false">Is the pick-up really free?<span class="plus">+</span></button><div class="acc-body"><p>Yes. Household pick-ups across Bengaluru are free. For bulk or society-wide drives we'll coordinate logistics with your RWA at no cost to residents.</p></div></div>
+      <div class="acc-item"><button class="acc-btn" aria-expanded="false">How much does a pick-up cost?<span class="plus">+</span></button><div class="acc-body"><p>Pickup is charged at transport cost. A two-wheeler for hand-picked loads up to 10 kg is ₹200 within 5 km, then ₹20 per additional km. A three or four-wheeler is ₹600 within a 5 km radius. Distance is measured from RK Hegde Nagar and Kogilu.</p></div></div>
       <div class="acc-item"><button class="acc-btn" aria-expanded="false">Are donations tax-exempt?<span class="plus">+</span></button><div class="acc-body"><p>Yes. Reclaim Era operates under Lamp Educational and Charitable Trust (LEACT); monetary donations are eligible under sections 12A &amp; 80G, and we issue receipts on request.</p></div></div>
       <div class="acc-item"><button class="acc-btn" aria-expanded="false">Where do the shop proceeds go?<span class="plus">+</span></button><div class="acc-body"><p>Proceeds keep EmpowHer artisans earning and fund LEACT's education programs, including teacher salaries and school infrastructure. 20% of proceeds go there directly.</p></div></div>
       <div class="acc-item"><button class="acc-btn" aria-expanded="false">How does Zero Waste Certification work?<span class="plus">+</span></button><div class="acc-body"><p>We run a four-phase program covering infrastructure, operations, digital tracking and resident education. After it, your campus receives an official Zero Waste Green Certificate and audit-ready documentation for SWM 2026 compliance.</p></div></div>
@@ -1016,7 +1051,7 @@ resources_body = page_hero(
 ''' + cta_band(
     'Stay in the <em>loop.</em>',
     "Get the latest report the day it drops, plus monthly events and volunteering invites.",
-    f'<a href="#" class="btn btn-green btn-lg">Read the Latest Report {I["arrow"]}</a><a href="contact.html" class="btn btn-outline-light btn-lg">Subscribe for Updates</a>'
+    f'<a href="https://sites.google.com/view/reportsandimpacts/home" target="_blank" rel="noopener noreferrer" class="btn btn-green btn-lg">Read the Latest Report {I["arrow"]}</a><a href="mailto:reclaimera@gmail.com?subject=Subscribe%20me%20to%20Reclaim%20Era%20updates" class="btn btn-outline-light btn-lg">Subscribe for Updates</a>'
 )
 
 # ================================================================ CONTACT
@@ -1070,9 +1105,9 @@ def legal_section(title, body):
 privacy_body = page_hero('<span>Privacy Policy</span>', 'Privacy <span style="color:var(--green-deep)">policy.</span>',
     'How Reclaim Era (Lamp Educational and Charitable Trust) collects, uses and protects your information.') + '''
 <section class="section" style="padding-top:10px"><div class="wrap" style="max-width:820px"><div class="prose">''' + \
-legal_section('What we collect', 'When you use our forms we collect the details you type in: your name, phone number, email address, pickup or campaign address, and your message. The campaign logistics fee is paid through Razorpay; we receive only a payment reference and status, and never see or store your card, UPI or bank details.') + \
+legal_section('What we collect', 'When you use our forms we collect the details you type in: your name, phone number, email address, pickup or campaign address, and your message. The campaign logistics fee is paid on PayU; we never see or store your card, UPI or bank details.') + \
 legal_section('How we use it', 'We use your details only to run our services: scheduling pickups, coordinating campaigns, responding to enquiries, issuing receipts, and sending updates you have asked for. We do not sell or rent your information to anyone.') + \
-legal_section('Where it goes', 'Form submissions are delivered to our team by email. Campaign applications and their payment status are stored in our secure database. Payments are processed by Razorpay under their own privacy policy and settled to the Trust\u2019s account. We share information with no third parties unless the law requires it.') + \
+legal_section('Where it goes', 'Form submissions are delivered to our team by email. Payments are processed by PayU under its own privacy policy and settled to the Trust\u2019s account. We share information with no third parties unless the law requires it.') + \
 legal_section('Cookies and tracking', 'This site does not use advertising cookies. Local storage in your browser is used only for site functionality.') + \
 legal_section('Your rights', 'You can ask us at any time to see, correct or delete the information we hold about you. Write to reclaimera@gmail.com and we will respond within a reasonable time.') + \
 legal_section('Contact', 'Reclaim Era, an initiative of Lamp Educational and Charitable Trust (LEACT), Kogilu, Yelahanka, Bengaluru, Karnataka. Email: reclaimera@gmail.com. Phone: +91 81520 20145.') + \
@@ -1084,7 +1119,7 @@ terms_body = page_hero('<span>Terms &amp; Conditions</span>', 'Terms &amp; <span
 legal_section('Who we are', 'This website is operated by Reclaim Era, an initiative of Lamp Educational and Charitable Trust (LEACT), Bengaluru, Karnataka, India.') + \
 legal_section('Using this site', 'You agree to use this site lawfully and to provide accurate information in our forms. We may update content, services and these terms from time to time; the version published here applies.') + \
 legal_section('Pickups and campaigns', 'Pickup requests and campaign applications are requests for service and are confirmed by our team over phone or email. The campaign logistics fee (minimum \u20B9500) covers the collection vehicle, crew and materials for a scheduled campaign; it is a service fee and not a donation. Scheduling is subject to our team\u2019s availability and service area.') + \
-legal_section('Payments', 'The campaign logistics fee (minimum \u20B9500) is paid securely through Razorpay (UPI, cards or netbanking). Applications are confirmed once the payment is received. Refunds are governed by our Refund &amp; Cancellation Policy.') + \
+legal_section('Payments', 'The campaign logistics fee (minimum \u20B9500) is paid securely through PayU using the payment methods offered on its checkout page. Applications are confirmed once the payment is received. Refunds are governed by our Refund &amp; Cancellation Policy.') + \
 legal_section('Donations', 'Monetary donations to LEACT are eligible for exemption under sections 12A and 80G of the Income Tax Act; receipts are issued on request. Donated goods are sorted at our discretion into reuse, upcycling or recycling.') + \
 legal_section('Content and branding', 'The Reclaim Era name, logo and site content belong to LEACT and may not be reproduced without permission, except for fair, non-commercial reference.') + \
 legal_section('Liability', 'We provide this site and our services with care but without warranties. To the extent permitted by law, LEACT is not liable for indirect or consequential losses arising from use of the site.') + \
@@ -1098,8 +1133,8 @@ refund_body = page_hero('<span>Refund &amp; Cancellation Policy</span>', 'Refund
 legal_section('The logistics fee', 'The logistics fee (minimum \u20B9500) paid with a campaign application covers the collection vehicle, crew and materials for your scheduled campaign day. It is a service fee, not a donation.') + \
 legal_section('If you cancel', 'Cancel at least 48 hours before your scheduled campaign date and we will refund the fee in full. Cancellations within 48 hours of the scheduled date are not refundable, because the vehicle and crew are already committed.') + \
 legal_section('If we cancel or cannot serve you', 'If we cannot schedule your campaign (for example, your location is outside our service area) or we cancel for any reason, you receive a full refund automatically.') + \
-legal_section('How refunds are paid', 'Refunds are issued to your original payment method through Razorpay, normally within 5\u20137 business days of your request being approved.') + \
-legal_section('How to request one', 'Email reclaimera@gmail.com or call +91 81520 20145 with the Razorpay payment reference from the receipt Razorpay emails you.') + \
+legal_section('How refunds are paid', 'Refunds are issued to your original payment method through PayU, normally within 5\u20137 business days of your request being approved.') + \
+legal_section('How to request one', 'Email reclaimera@gmail.com or call +91 81520 20145 with the payment reference shown on your PayU receipt.') + \
 '</div></div></section>'
 
 notfound_body = '''
@@ -1225,7 +1260,7 @@ CAMPAIGN_JS = r"""
       showSuccess();
       return;
     }
-    // valid Razorpay link opens in a new tab (anchor default); show success here
+    // The valid PayU payment link opens in a new tab; show next-step guidance here.
     showSuccess();
   });
 })();
@@ -1235,7 +1270,7 @@ CAMPAIGN_JS = r"""
 campaign_body = page_hero(
     '<span>Host a Campaign</span>',
     'Donation campaign <span style="color:var(--green-deep)">application.</span>',
-    "Bring a Reclaim Era used-clothes collection drive to your apartment complex, company, campus, store or restaurant. A one-time logistics fee of \u20B9500 or more, paid securely on Razorpay (UPI, cards or netbanking), confirms your slot and covers the collection vehicle and crew."
+    "Bring a Reclaim Era used-clothes collection drive to your apartment complex, company, campus, store or restaurant. A logistics contribution of \u20B9500 or more, paid securely through PayU, confirms your slot and helps cover the collection vehicle and crew."
 ) + f'''
 <section class="section" style="padding-top:30px">
   <div class="wrap two-col form-layout">
@@ -1296,10 +1331,10 @@ campaign_body = page_hero(
             <h3 style="font-size:1.4rem;margin-bottom:22px">Review &amp; submit</h3>
             <div class="review-list"><dl id="reviewDl"></dl></div>
             <div class="fee-row"><span>Logistics fee (minimum)</span><span class="amt">\u20B9500</span></div>
-            <p class="pay-note">When you press the button, your application is sent to our team and the secure Razorpay payment page opens in a new tab. Complete the \u20B9500 fee there \u2014 UPI, cards and netbanking are all accepted (\u20B9500 minimum, more is welcome).</p>
+            <p class="pay-note">When you press the button, your application is sent to our team and the secure PayU payment page opens in a new tab. The minimum amount is \u20B9500; you may contribute more.</p>
             <div class="step-actions">
               <button type="button" class="btn btn-outline" id="back3">Back</button>
-              <a class="btn btn-green btn-lg" id="paySubmit" href="{RZP_CAMPAIGN}" target="_blank" rel="noopener noreferrer" data-razorpay>Pay \u20B9500 via Razorpay &#8599;</a>
+              <a class="btn btn-green btn-lg" id="paySubmit" href="{PAYMENT_LINK}" target="_blank" rel="noopener noreferrer">Continue to secure payment &#8599;</a>
             </div>
           </div>          </div>
 
@@ -1309,7 +1344,7 @@ campaign_body = page_hero(
         <div class="success-panel" id="successPanel" style="display:none">
           <div class="big-tick">{I["check"]}</div>
           <h3>Application received!</h3>
-          <p>Complete the \u20B9500 fee in the Razorpay tab that just opened. <span id="successNote"></span></p>
+          <p>Complete the minimum \u20B9500 payment in the PayU tab that just opened. <span id="successNote"></span></p>
           <p>Once we see your payment, our team calls your coordinator within 48 hours to fix the campaign date.</p>
         </div>
       </div>
@@ -1338,7 +1373,8 @@ GALLERY_JS = ""  # gallery is rendered by js/render.js now
 gallery_body = page_hero(
     '<span>Gallery &amp; Events</span>',
     'Moments from the <span style="color:var(--green-deep)">field.</span>',
-    "Collection drives, EmpowHer workshops, school sessions and volunteer days \u2014 a look at Reclaim Era in action across Bengaluru."
+    "Collection drives, EmpowHer workshops, school sessions and volunteer days \u2014 a look at Reclaim Era in action across Bengaluru.",
+    f'<a href="{GALLERY_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-green">Open Full Photo Gallery {I["arrow"]}</a>'
 ) + '''
 <section class="section" style="padding-top:30px">
   <div class="wrap">
@@ -1376,7 +1412,7 @@ PAGES = {
     "Buy premium upcycled denim totes, backpacks, and corporate organizers handcrafted by EmpowHer artisans. Proceeds fund LEACT's education programs.",
     "shop", shop_body, ""),
 "request-pickup.html": ("Request a Textile Pickup in Bengaluru | Reclaim Era",
-    "Schedule a free pickup for clothes, household items, and stationery across Bengaluru. Contactless collection and donation receipts available.",
+    "Schedule a charged-at-cost pickup for eligible clothes, household items and stationery across Bengaluru.",
     "", pickup_body, ""),
 "zero-waste-certification.html": ("Zero Waste Certification & AMC | SWM 2026 Compliance",
     "Turn your campus into a Zero Waste campus. End-to-end segregation, AMC, digital tracking and official Zero Waste Green Certificates for BWG compliance.",

@@ -22,7 +22,7 @@ sitemap and content brief in `Reclaim Era_Sitemap Overview.pdf`.
 | Get Involved | `get-involved.html` |
 | Resources & FAQs | `resources.html` |
 | Contact | `contact.html` |
-| Host a Campaign (multi-step + Razorpay ₹500 link) | `campaign-application.html` |
+| Host a Campaign (multi-step + PayU ₹500 minimum link) | `campaign-application.html` |
 
 ## Structure
 
@@ -60,22 +60,20 @@ python3 -m http.server 8000
 The site is plain HTML/CSS/JS — host it anywhere: Netlify / Vercel / GitHub Pages /
 any shared hosting. Just upload the contents of this folder.
 
-## Campaign application (Razorpay Payment Link)
+## Campaign application (PayU Payment Link)
 
 `campaign-application.html` is a 3-step form (location → contact → review). On the
-final step, pressing **Pay ₹500 via Razorpay** sends the application details to
-`reclaimera@gmail.com` (via FormSubmit) and opens the client's **Razorpay Payment
-Link** in a new tab to collect the fee. Fully static — no backend, no database.
+final step, pressing **Continue to secure payment** sends the application details to
+`reclaimera@gmail.com` (via FormSubmit) and opens the client's **PayU Payment Link**
+in a new tab. The minimum contribution is ₹500. Fully static — no backend or database
+is required for this flow.
 
-**Paste the real links** in `_dev/build.py` near the top:
-`RZP_DONATE` (a Razorpay Payment Link that lets donors enter any amount) and
-`RZP_CAMPAIGN` (a link for the ₹500 minimum fee), then run `python3 _dev/build.py`.
-Until they're set, Donate buttons show a friendly "payments open shortly" toast and
-the campaign form still captures the application by email. Razorpay Payment Links
-require the Trust's Razorpay account (KYC) to create and to receive money.
+The client-approved links are configured in `_dev/build.py` near the top as
+`DONATE_FORM_LINK` (Jotform) and `PAYMENT_LINK` (PayU). Run
+`python3 _dev/build.py` after changing either value.
 
-The `Request a Pick-Up` button is deliberately **not** a payment link — pickups are
-free, so it stays as the scheduling form.
+The `Request a Pick-Up` button stays as a scheduling form. Pickup is charged at
+transport cost; the current prices and distance rules are shown on that page.
 
 ## Admin dashboard
 
