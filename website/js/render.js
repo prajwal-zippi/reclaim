@@ -122,6 +122,26 @@
 
   var draft = null;
   try { draft = JSON.parse(localStorage.getItem(PREVIEW_KEY)); } catch (e) {}
+  /* Chrome may still have the original four "Coming soon" gallery cards saved
+     as an admin preview. Keep any product/stat draft, but retire that specific
+     placeholder gallery once real published photographs are available. */
+  if (draft && Array.isArray(draft.gallery) && staticGallery.some(function (x) { return !!x.imageUrl; })) {
+    var legacyGalleryTitles = [
+      "Kogilu Hub collection drive",
+      "EmpowHer artisan workshop",
+      "School zero-waste session",
+      "Corporate volunteer day"
+    ];
+    var isLegacyGallery =
+      draft.gallery.length === legacyGalleryTitles.length &&
+      draft.gallery.every(function (x, i) {
+        return x && !x.imageUrl && x.title === legacyGalleryTitles[i];
+      });
+    if (isLegacyGallery) {
+      draft.gallery = staticGallery;
+      try { localStorage.setItem(PREVIEW_KEY, JSON.stringify(draft)); } catch (e) {}
+    }
+  }
 
   var CACHE_KEY = "re-content-cache";
   function applyLive(live) {
