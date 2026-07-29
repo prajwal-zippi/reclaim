@@ -121,6 +121,9 @@
             ok.classList.add("show");
             ok.scrollIntoView({ behavior: "smooth", block: "nearest" });
           }
+          if (form.classList.contains("newsletter")) {
+            reToast("You’re subscribed! Thank you for joining Reclaim Era updates.");
+          }
         } else {
           let msg = "";
           try {
@@ -132,9 +135,15 @@
             if (slot && msg) slot.textContent = msg;
             err.classList.add("show");
           }
+          if (form.classList.contains("newsletter")) {
+            reToast("We couldn’t subscribe you right now. Please try again.");
+          }
         }
       } catch (_) {
         if (err) err.classList.add("show");
+        if (form.classList.contains("newsletter")) {
+          reToast("We couldn’t subscribe you right now. Please check your connection and retry.");
+        }
       } finally {
         if (btn) {
           btn.disabled = false;
