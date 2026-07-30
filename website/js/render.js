@@ -1,9 +1,8 @@
 /* ============================================================
    Reclaim Era — data-driven rendering
    Precedence for what the site shows:
-     1. a local admin DRAFT in this browser (device-only preview)
-     2. LIVE content from the backend/Neon (/api/content)
-     3. the static files js/site-data.js + js/gallery-data.js (fallback)
+     1. LIVE content from the backend/Neon (/api/content)
+     2. the static files js/site-data.js + js/gallery-data.js (fallback)
    The static files paint instantly; live content re-renders when it
    arrives, so visitors never wait on a cold backend.
    ============================================================ */

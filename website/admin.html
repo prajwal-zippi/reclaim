@@ -224,7 +224,7 @@
           sessionStorage.setItem(TOKEN_KEY, r.d.token);
           gate.remove(); if (window.__enterDashboard) window.__enterDashboard();
         } else {
-          gateError("That password is not right. Try again.");
+          gateError((r.d && r.d.error) || "That password is not right. Try again.");
         }
       })
       .catch(function () {
@@ -289,6 +289,7 @@
       .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
       .then(function (r) {
         if (r.ok && r.d.ok) {
+          if (r.d.token) sessionStorage.setItem(TOKEN_KEY, r.d.token);
           msg.style.color = "var(--green-deep)";
           msg.textContent = "Password updated. Use the new password from your next login.";
           document.getElementById("pwCurrent").value = pwNew.value = document.getElementById("pwConfirm").value = "";
