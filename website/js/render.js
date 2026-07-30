@@ -144,11 +144,41 @@
   }
 
   var CACHE_KEY = "re-content-cache";
+  var SYNC_CHANNEL = "reclaim-era-live-content";
+  var liveChannel = null;
+
   function applyLive(live) {
     apply(
       { products: live.products || staticData.products, stats: live.stats || staticData.stats, phone: live.phone || staticData.phone },
       live.gallery || staticGallery
     );
+  }
+
+  function hasLocalDraft() {
+    try { return !!localStorage.getItem(PREVIEW_KEY); } catch (e) { return false; }
+  }
+
+  function cacheAndApply(live) {
+    if (!live || !(live.products || live.stats || live.phone || live.gallery) || hasLocalDraft()) return;
+    applyLive(live);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(live)); } catch (e) {}
+  }
+
+  function refreshLive() {
+    if (window.RE_HAS_BACKEND === false || hasLocalDraft()) return;
+    fetch(API_BASE + "/api/content?fresh=" + Date.now(), {
+      cache: "no-store",
+      headers: { Accept: "application/json" }
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (live) {
+        if (live && (live.products || live.stats || live.phone || live.gallery)) {
+          cacheAndApply(live);
+        } else {
+          try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
+        }
+      })
+      .catch(function () {});               // offline / no backend → keep static + cache
   }
 
   if (draft && typeof draft === "object") {
@@ -163,18 +193,26 @@
       var cached = JSON.parse(localStorage.getItem(CACHE_KEY));
       if (cached && (cached.products || cached.stats || cached.phone || cached.gallery)) applyLive(cached);
     } catch (e) {}
-    // revalidate from the backend and refresh the cache
-    fetch(API_BASE + "/api/content", { headers: { Accept: "application/json" } })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (live) {
-        if (live && (live.products || live.stats || live.phone || live.gallery)) {
-          applyLive(live);
-          try { localStorage.setItem(CACHE_KEY, JSON.stringify(live)); } catch (e) {}
-        } else {
-          try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
-        }
-      })
-      .catch(function () {});               // offline / no backend → keep static + cache
+    // Revalidate now, whenever the tab is revisited, and once per minute. An
+    // admin save also pushes the same content instantly through BroadcastChannel
+    // and localStorage to public pages open on this device.
+    refreshLive();
+    if ("BroadcastChannel" in window) {
+      liveChannel = new BroadcastChannel(SYNC_CHANNEL);
+      liveChannel.addEventListener("message", function (event) {
+        cacheAndApply(event.data);
+      });
+    }
+    window.addEventListener("storage", function (event) {
+      if (event.key === CACHE_KEY && event.newValue && !hasLocalDraft()) {
+        try { cacheAndApply(JSON.parse(event.newValue)); } catch (e) {}
+      }
+      if (event.key === PREVIEW_KEY && !event.newValue) refreshLive();
+    });
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) refreshLive();
+    });
+    window.setInterval(refreshLive, 60 * 1000);
   }
 
   /* gallery lightbox (bind once) */
@@ -201,5 +239,14 @@
   }
 
   /* expose for admin.html */
-  window.RE_RENDER = { ART: ART, card: card, renderInto: renderProducts, esc: esc, PREVIEW_KEY: PREVIEW_KEY, API_BASE: API_BASE };
+  window.RE_RENDER = {
+    ART: ART,
+    card: card,
+    renderInto: renderProducts,
+    esc: esc,
+    PREVIEW_KEY: PREVIEW_KEY,
+    CACHE_KEY: CACHE_KEY,
+    SYNC_CHANNEL: SYNC_CHANNEL,
+    API_BASE: API_BASE
+  };
 })();

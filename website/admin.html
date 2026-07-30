@@ -90,10 +90,10 @@
 
 <main class="wrap">
   <div class="howto">
-    <b>How it works:</b> edit the shop, product photos (paste an image link), impact
-    numbers or phone below. When you are happy, press <b>Save &amp; publish</b> in the
-    bottom bar — it downloads an updated <b>site-data.js</b>. Put that file in the site's
-    <b>js/</b> folder (or send it to your web person) and the changes go live.
+    <b>How it works:</b> edit the shop, prices, product photos, impact numbers or
+    phone below. When you are happy, press <b>Save &amp; publish</b> in the bottom
+    bar. The changes are saved to Neon and appear on the website immediately.
+    <b>Download backup</b> is optional and keeps an offline copy for your web person.
   </div>
 
   <section class="adm-section">
@@ -571,7 +571,23 @@
       .then(function (r) {
         if (r.ok && r.d.ok) {
           dirty = false;
+          var published = {
+            phone: state.phone,
+            stats: state.stats,
+            products: state.products,
+            gallery: state.gallery
+          };
           localStorage.removeItem(R.PREVIEW_KEY);  // published → drop device draft
+          try {
+            localStorage.setItem(R.CACHE_KEY || "re-content-cache", JSON.stringify(published));
+          } catch (e) {}
+          if ("BroadcastChannel" in window) {
+            try {
+              var channel = new BroadcastChannel(R.SYNC_CHANNEL || "reclaim-era-live-content");
+              channel.postMessage(published);
+              channel.close();
+            } catch (e) {}
+          }
           statusEl.textContent = "Saved & published ✓  It is live on the site now.";
         } else {
           statusEl.textContent = (r.d && r.d.error) || "Could not publish. Log in again and retry.";
