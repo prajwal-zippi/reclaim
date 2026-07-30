@@ -71,6 +71,16 @@
       var rc = opts.reveal ? ("reveal " + delays[i % 4]).trim() : "";
       return card(p, opts.variant || "full", rc);
     }).join("");
+    /* Products are rendered again when live Neon content arrives. Those new
+       nodes were not present when main.js created its IntersectionObserver,
+       so ensure they enter instead of remaining permanently opacity: 0. */
+    if (opts.reveal) {
+      window.requestAnimationFrame(function () {
+        el.querySelectorAll(".reveal").forEach(function (cardEl) {
+          cardEl.classList.add("in");
+        });
+      });
+    }
   }
 
   /* ---------- gallery cards ---------- */
