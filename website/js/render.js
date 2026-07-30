@@ -116,32 +116,9 @@
     if (grid) renderGallery(grid, gallery);
   }
 
-  /* ---------- resolve: static baseline, then draft or live ---------- */
+  /* ---------- resolve: static baseline, then published live content ---------- */
   var staticData = window.RE_DATA || {};
   var staticGallery = window.RE_GALLERY || [];
-
-  var draft = null;
-  try { draft = JSON.parse(localStorage.getItem(PREVIEW_KEY)); } catch (e) {}
-  /* Chrome may still have the original four "Coming soon" gallery cards saved
-     as an admin preview. Keep any product/stat draft, but retire that specific
-     placeholder gallery once real published photographs are available. */
-  if (draft && Array.isArray(draft.gallery) && staticGallery.some(function (x) { return !!x.imageUrl; })) {
-    var legacyGalleryTitles = [
-      "Kogilu Hub collection drive",
-      "EmpowHer artisan workshop",
-      "School zero-waste session",
-      "Corporate volunteer day"
-    ];
-    var isLegacyGallery =
-      draft.gallery.length === legacyGalleryTitles.length &&
-      draft.gallery.every(function (x, i) {
-        return x && !x.imageUrl && x.title === legacyGalleryTitles[i];
-      });
-    if (isLegacyGallery) {
-      draft.gallery = staticGallery;
-      try { localStorage.setItem(PREVIEW_KEY, JSON.stringify(draft)); } catch (e) {}
-    }
-  }
 
   var CACHE_KEY = "re-content-cache";
   var SYNC_CHANNEL = "reclaim-era-live-content";
@@ -154,18 +131,14 @@
     );
   }
 
-  function hasLocalDraft() {
-    try { return !!localStorage.getItem(PREVIEW_KEY); } catch (e) { return false; }
-  }
-
   function cacheAndApply(live) {
-    if (!live || !(live.products || live.stats || live.phone || live.gallery) || hasLocalDraft()) return;
+    if (!live || !(live.products || live.stats || live.phone || live.gallery)) return;
     applyLive(live);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(live)); } catch (e) {}
   }
 
   function refreshLive() {
-    if (window.RE_HAS_BACKEND === false || hasLocalDraft()) return;
+    if (window.RE_HAS_BACKEND === false) return;
     fetch(API_BASE + "/api/content?fresh=" + Date.now(), {
       cache: "no-store",
       headers: { Accept: "application/json" }
@@ -181,10 +154,7 @@
       .catch(function () {});               // offline / no backend → keep static + cache
   }
 
-  if (draft && typeof draft === "object") {
-    apply(draft, draft.gallery || staticGallery);
-    showPreviewBanner();
-  } else if (window.RE_HAS_BACKEND === false) {
+  if (window.RE_HAS_BACKEND === false) {
     apply(staticData, staticGallery);       // pure-static: the files are the source of truth
   } else {
     apply(staticData, staticGallery);       // instant paint from static files
@@ -204,10 +174,9 @@
       });
     }
     window.addEventListener("storage", function (event) {
-      if (event.key === CACHE_KEY && event.newValue && !hasLocalDraft()) {
+      if (event.key === CACHE_KEY && event.newValue) {
         try { cacheAndApply(JSON.parse(event.newValue)); } catch (e) {}
       }
-      if (event.key === PREVIEW_KEY && !event.newValue) refreshLive();
     });
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) refreshLive();
@@ -227,15 +196,6 @@
       lb.classList.add("open");
     });
     lb.addEventListener("click", function () { lb.classList.remove("open"); });
-  }
-
-  function showPreviewBanner() {
-    if (document.querySelector(".admin-preview-note")) return;
-    var note = document.createElement("div");
-    note.className = "admin-preview-note";
-    note.innerHTML = 'Draft preview (only on this device) &nbsp;·&nbsp; <a href="admin.html" style="text-decoration:underline">Open dashboard</a>';
-    note.style.cssText = "position:fixed;bottom:0;left:0;right:0;z-index:200;background:#E8B84B;color:#17251E;font:600 13px/1.4 Inter,sans-serif;text-align:center;padding:8px 14px;";
-    document.body.appendChild(note);
   }
 
   /* expose for admin.html */
