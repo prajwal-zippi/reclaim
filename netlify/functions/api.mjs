@@ -1,7 +1,6 @@
 import {
   createHmac,
   randomBytes,
-  timingSafeEqual,
 } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 
@@ -71,6 +70,18 @@ function bytesToHex(bytes) {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+function secureEqual(left, right) {
+  const encoder = new TextEncoder();
+  const leftBytes = typeof left === "string" ? encoder.encode(left) : left;
+  const rightBytes = typeof right === "string" ? encoder.encode(right) : right;
+  if (leftBytes.length !== rightBytes.length) return false;
+  let difference = 0;
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    difference |= leftBytes[index] ^ rightBytes[index];
+  }
+  return difference === 0;
+}
+
 function hexToBytes(hex) {
   if (!/^[a-f0-9]+$/i.test(hex) || hex.length % 2) throw new Error("Invalid hex");
   return Uint8Array.from(hex.match(/.{2}/g), (pair) => Number.parseInt(pair, 16));
@@ -104,7 +115,7 @@ async function verifyPassword(password, stored) {
     if (kind !== "pbkdf2" || !salt || !expectedHex) return false;
     const actual = await derivePassword(password, hexToBytes(salt));
     const expected = hexToBytes(expectedHex);
-    return actual.length === expected.length && timingSafeEqual(actual, expected);
+    return secureEqual(actual, expected);
   } catch {
     return false;
   }
@@ -140,7 +151,7 @@ async function tokenValid(token) {
     const expected = createHmac("sha256", SESSION_SECRET).update(payload).digest("hex");
     const signatureValid =
       signature.length === expected.length &&
-      timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+      secureEqual(signature, expected);
     if (!signatureValid) return false;
     const rows = await sql`SELECT username, password_hash FROM admin_settings WHERE id = 1`;
     if (!rows.length) return false;
@@ -150,7 +161,7 @@ async function tokenValid(token) {
       .slice(0, 24);
     return (
       passwordVersion.length === currentVersion.length &&
-      timingSafeEqual(Buffer.from(passwordVersion), Buffer.from(currentVersion))
+      secureEqual(passwordVersion, currentVersion)
     );
   } catch {
     return false;
