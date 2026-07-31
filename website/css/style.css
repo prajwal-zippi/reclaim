@@ -658,6 +658,19 @@ h1,h2,h3,.display{font-family:var(--font-display);font-weight:700;line-height:1.
 .footer-bottom .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .footer-bottom a:hover{color:#fff}
 
+/* Homepage WhatsApp contact */
+.whatsapp-float{
+  position:fixed;right:24px;bottom:24px;z-index:900;
+  display:flex;align-items:center;gap:9px;padding:12px 17px 12px 13px;
+  border-radius:999px;background:#25d366;color:#fff;
+  font-size:.88rem;font-weight:700;line-height:1;
+  box-shadow:0 10px 28px rgba(12,72,43,.28);
+  transition:transform .2s ease,box-shadow .2s ease,background .2s ease;
+}
+.whatsapp-float svg{width:25px;height:25px;flex:none}
+.whatsapp-float:hover{color:#fff;background:#1fbd59;transform:translateY(-3px);box-shadow:0 14px 34px rgba(12,72,43,.34)}
+.whatsapp-float:focus-visible{outline:3px solid #fff;outline-offset:3px;box-shadow:0 0 0 6px #128c7e}
+
 /* ---------- mobile sticky action bar ---------- */
 .mobile-bar{
   position:fixed;bottom:0;left:0;right:0;z-index:110;display:none;
@@ -759,6 +772,8 @@ body.nav-open .nav-toggle .icon-close{display:block}
   .mobile-bar{display:flex}
   body{padding-bottom:76px}
   .footer{margin-bottom:0}
+  .whatsapp-float{right:16px;bottom:92px;padding:13px;border-radius:50%}
+  .whatsapp-float span{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 }
 @media(max-width:640px){
   .header-cta .btn{display:none}
