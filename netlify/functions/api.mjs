@@ -145,6 +145,10 @@ function validImageUrl(value) {
   if (!value) return true;
   const url = String(value).trim();
   if (/^\/api\/image\/[a-f0-9]{24}\.(jpg|png)$/.test(url)) return true;
+  if (
+    !url.includes("..") &&
+    /^\/?assets\/[A-Za-z0-9_./-]+\.(?:jpe?g|png|webp)$/i.test(url)
+  ) return true;
   try {
     return new URL(url).protocol === "https:";
   } catch {
