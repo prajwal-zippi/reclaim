@@ -6,10 +6,10 @@ import {
 } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 
-const DATABASE_URL = process.env.DATABASE_URL || "";
-const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || "";
-const INITIAL_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD || "";
-const INITIAL_USERNAME = process.env.ADMIN_INITIAL_USERNAME || "admin";
+let DATABASE_URL = "";
+let SESSION_SECRET = "";
+let INITIAL_PASSWORD = "";
+let INITIAL_USERNAME = "admin";
 const TOKEN_TTL_SECONDS = 12 * 60 * 60;
 const PBKDF2_ITERATIONS = 240_000;
 const MAX_IMAGE_BYTES = 3_500_000;
@@ -18,8 +18,24 @@ const MAX_REQUEST_BYTES = 5_000_000;
 const LOGIN_WINDOW_MINUTES = 15;
 const LOGIN_MAX_FAILURES = 5;
 
-const sql = DATABASE_URL ? neon(DATABASE_URL) : null;
+let sql = null;
 let schemaReady;
+
+function configureRuntime(event) {
+  const runtime = event && event.env ? event.env : process.env;
+  const nextDatabaseUrl = runtime.DATABASE_URL || process.env.DATABASE_URL || "";
+  if (nextDatabaseUrl !== DATABASE_URL) {
+    DATABASE_URL = nextDatabaseUrl;
+    sql = DATABASE_URL ? neon(DATABASE_URL) : null;
+    schemaReady = undefined;
+  }
+  SESSION_SECRET =
+    runtime.ADMIN_SESSION_SECRET || process.env.ADMIN_SESSION_SECRET || "";
+  INITIAL_PASSWORD =
+    runtime.ADMIN_INITIAL_PASSWORD || process.env.ADMIN_INITIAL_PASSWORD || "";
+  INITIAL_USERNAME =
+    runtime.ADMIN_INITIAL_USERNAME || process.env.ADMIN_INITIAL_USERNAME || "admin";
+}
 
 const headers = {
   "Content-Type": "application/json; charset=utf-8",
@@ -472,6 +488,7 @@ async function getImage(id) {
 }
 
 export async function handler(event) {
+  configureRuntime(event);
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers, body: "" };
   if (!DATABASE_URL) return json(503, { ok: false, error: "DATABASE_URL is not configured." });
 

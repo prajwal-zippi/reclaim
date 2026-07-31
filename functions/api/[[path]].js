@@ -4,21 +4,7 @@ function requestHeaders(request) {
   );
 }
 
-function applyEnvironment(env) {
-  for (const key of [
-    "DATABASE_URL",
-    "ADMIN_SESSION_SECRET",
-    "ADMIN_INITIAL_PASSWORD",
-    "ADMIN_INITIAL_USERNAME",
-    "GEOCODING_BASE_URL",
-  ]) {
-    if (typeof env[key] === "string") process.env[key] = env[key];
-  }
-}
-
 export async function onRequest(context) {
-  applyEnvironment(context.env);
-
   const { handler } = await import("../../netlify/functions/api.mjs");
   const request = context.request;
   const body = request.method === "GET" || request.method === "HEAD"
@@ -31,6 +17,7 @@ export async function onRequest(context) {
     path: new URL(request.url).pathname,
     headers: requestHeaders(request),
     body,
+    env: context.env,
   });
 
   const responseHeaders = new Headers(result.headers || {});
