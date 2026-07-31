@@ -44,6 +44,7 @@
   }
   .actionbar .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .actionbar .status{font-size:.8rem;color:rgba(255,255,255,.7);margin-right:auto}
+  .actionbar .btn:disabled{opacity:.6;cursor:wait;pointer-events:none}
   .pw-checks{display:flex;gap:8px 14px;flex-wrap:wrap;margin:14px 0 18px}
   .pw-checks li{font-size:.8rem;font-weight:600;color:var(--ink-soft);padding:5px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper)}
   .pw-checks li.ok{color:var(--green-deep);border-color:var(--green);background:var(--green-tint)}
@@ -91,8 +92,9 @@
 <main class="wrap">
   <div class="howto">
     <b>How it works:</b> edit the shop, prices, product photos, impact numbers or
-    phone below. When you are happy, press <b>Save &amp; publish</b> in the bottom
-    bar. The changes are saved to Neon and appear on the website immediately.
+    phone below. Changes publish automatically after you stop typing. You can
+    also press <b>Save &amp; publish</b> in the bottom bar at any time. The changes
+    are saved to Neon and appear on the website immediately.
     <b>Download backup</b> is optional and keeps an offline copy for your web person.
   </div>
 
@@ -158,7 +160,7 @@
   <div class="wrap">
     <span class="status" id="statusText">Loading current content…</span>
     <button class="btn btn-outline-light btn-sm" onclick="downloadPublish()">Download backup</button>
-    <button class="btn btn-green btn-sm" onclick="saveToSite()">Save &amp; publish to site</button>
+    <button class="btn btn-green btn-sm" id="publishBtn" onclick="saveToSite()">Save &amp; publish to site</button>
   </div>
 </div>
 
@@ -313,7 +315,13 @@
   var galEl = document.getElementById("galleryList");
   var previewEl = document.getElementById("previewGrid");
   var statusEl = document.getElementById("statusText");
+  var publishBtn = document.getElementById("publishBtn");
   var dirty = false;
+  var liveLoaded = false;
+  var publishing = false;
+  var publishQueued = false;
+  var autoPublishTimer = 0;
+  var changeVersion = 0;
 
   function copy(x) { return x ? JSON.parse(JSON.stringify(x)) : x; }
   function resolveImg(u) { return (u && u.indexOf("/api/") === 0) ? API_BASE + u : u; }
@@ -378,9 +386,18 @@
 
   function save() {
     dirty = true;
+    changeVersion += 1;
     localStorage.setItem(R.PREVIEW_KEY, JSON.stringify(state));  // device preview
-    statusEl.textContent = "Unsaved changes — press ‘Save & publish to site’ to make them live.";
+    statusEl.textContent = liveLoaded
+      ? "Changes detected — publishing automatically…"
+      : "Changes detected — waiting for live content to finish loading…";
     renderPreview();
+    if (liveLoaded && HAS_BACKEND) {
+      window.clearTimeout(autoPublishTimer);
+      autoPublishTimer = window.setTimeout(function () {
+        window.saveToSite();
+      }, 900);
+    }
   }
 
   function renderPreview() { R.renderInto(previewEl, state.products, { variant: "full" }); }
@@ -403,10 +420,12 @@
           seedFrom(live);
           renderAll();
         }
+        liveLoaded = true;
         dirty = false;
-        statusEl.textContent = "Showing the content that is live on the site.";
+        statusEl.textContent = "Connected to the live site. Changes will publish automatically.";
       })
       .catch(function () {
+        liveLoaded = false;
         statusEl.textContent = "Backend not reachable — editing the static defaults. ‘Save & publish’ needs the backend.";
       });
   }
@@ -559,25 +578,36 @@
       statusEl.textContent = "Saving to the site needs the backend running / server login.";
       return;
     }
+    window.clearTimeout(autoPublishTimer);
+    if (publishing) {
+      publishQueued = true;
+      return;
+    }
+    publishing = true;
+    publishQueued = false;
+    var publishingVersion = changeVersion;
+    var contentToPublish = copy({
+      phone: state.phone,
+      stats: state.stats,
+      products: state.products,
+      gallery: state.gallery
+    });
+    publishBtn.disabled = true;
+    publishBtn.textContent = "Publishing…";
     statusEl.textContent = "Publishing…";
     fetch(API_BASE + "/api/admin/content", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         token: token,
-        content: { phone: state.phone, stats: state.stats, products: state.products, gallery: state.gallery }
+        content: contentToPublish
       })
     })
       .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
       .then(function (r) {
         if (r.ok && r.d.ok) {
-          dirty = false;
-          var published = {
-            phone: state.phone,
-            stats: state.stats,
-            products: state.products,
-            gallery: state.gallery
-          };
+          dirty = changeVersion !== publishingVersion;
+          var published = contentToPublish;
           localStorage.removeItem(R.PREVIEW_KEY);  // published → drop device draft
           try {
             localStorage.setItem(R.CACHE_KEY || "re-content-cache", JSON.stringify(published));
@@ -589,12 +619,24 @@
               channel.close();
             } catch (e) {}
           }
-          statusEl.textContent = "Saved & published ✓  It is live on the site now.";
+          statusEl.textContent = "Saved & published ✓ It is live on the site now.";
         } else {
           statusEl.textContent = (r.d && r.d.error) || "Could not publish. Log in again and retry.";
         }
       })
-      .catch(function () { statusEl.textContent = "Could not reach the server. Try again in a minute."; });
+      .catch(function () { statusEl.textContent = "Could not reach the server. Try again in a minute."; })
+      .finally(function () {
+        publishing = false;
+        publishBtn.disabled = false;
+        publishBtn.textContent = "Save & publish to site";
+        if (publishQueued || dirty) {
+          publishQueued = false;
+          window.clearTimeout(autoPublishTimer);
+          autoPublishTimer = window.setTimeout(function () {
+            if (dirty) window.saveToSite();
+          }, 300);
+        }
+      });
   };
 
   /* backup: download a site-data.js you can commit as the static fallback */

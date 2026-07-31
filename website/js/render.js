@@ -190,7 +190,7 @@
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) refreshLive();
     });
-    window.setInterval(refreshLive, 60 * 1000);
+    window.setInterval(refreshLive, 30 * 1000);
   }
 
   /* gallery lightbox (bind once) */
