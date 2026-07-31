@@ -13,7 +13,7 @@ sitemap and content brief in `Reclaim Era_Sitemap Overview.pdf`.
 | About Us | `about.html` |
 | Our Initiatives (landing) | `initiatives.html` |
 | — Waste Management | `waste-management.html` |
-| — Education (NEP 2020) | `education.html` |
+| — Environmental Education | `education.html` |
 | — EmpowHer Academy | `empowher.html` |
 | — CSR Partnerships | `csr-partnerships.html` |
 | Shop With Purpose | `shop.html` |

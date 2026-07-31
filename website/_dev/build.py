@@ -122,7 +122,7 @@ def header(active=""):
         return ' class="nav-link active"' if k == active else ' class="nav-link"'
     tiles = (
         dropdown_tile("waste-management.html", I["recycle"], "bg-green-t", "Waste Management", "Textile recovery, zero landfill"),
-        dropdown_tile("education.html", I["book"], "bg-blue-t", "Education (NEP 2020)", "Hands-on environmental curriculum"),
+        dropdown_tile("education.html", I["book"], "bg-blue-t", "Environmental Education", "Hands-on environmental curriculum"),
         dropdown_tile("empowher.html", I["sew"], "bg-terra-t", "EmpowHer Academy", "13 green livelihoods created"),
         dropdown_tile("csr-partnerships.html", I["handshake"], "bg-gold-t", "CSR Partnerships", "Verified ESG outcomes for corporates"),
     )
@@ -218,7 +218,7 @@ FOOTER = f'''
         <h5>Initiatives</h5>
         <ul class="footer-links">
           <li><a href="waste-management.html">Waste Management</a></li>
-          <li><a href="education.html">Education (NEP 2020)</a></li>
+          <li><a href="education.html">Environmental Education</a></li>
           <li><a href="empowher.html">EmpowHer Academy</a></li>
           <li><a href="csr-partnerships.html">CSR Partnerships</a></li>
         </ul>
@@ -568,7 +568,7 @@ initiatives_body = page_hero(
       <a href="education.html" class="init-card t-blue reveal reveal-d1">
         <div class="icon-chip bg-blue-t">{I["book"]}</div>
         <span class="metric">Education</span>
-        <h3>Environmental Education (NEP 2020)</h3>
+        <h3>Environmental Education</h3>
         <p>A one-year hands-on curriculum aligned to NEP 2020 and NCF 2023: workshops, student-led audits, and on-campus Revive Stations.</p>
         <span class="arrow-btn">{I["arrow"]}</span>
       </a>
@@ -638,7 +638,7 @@ waste_body = page_hero(
 
 # ================================================================ EDUCATION
 education_body = page_hero(
-    '<a href="initiatives.html">Our Initiatives</a><span class="sep">/</span><span>Education (NEP 2020)</span>',
+    '<a href="initiatives.html">Our Initiatives</a><span class="sep">/</span><span>Environmental Education</span>',
     'Environmental education, <span style="color:var(--blue)">hands-on.</span>',
     "Move from textbook theory to real-world action with a year-long curriculum aligned to NEP 2020 and NCF 2023.",
     f'<a href="{SCHOOL_PARTNER_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-green">Partner Your School {I["arrow"]}</a>'
@@ -1394,7 +1394,7 @@ PAGES = {
     "Learn how Reclaim Era began, our dual-impact model, and the team turning textile waste into education and livelihoods in Bengaluru.",
     "about", about_body, ""),
 "initiatives.html": ("Our Initiatives — Waste Management, Education, EmpowHer, CSR",
-    "Explore Reclaim Era's four pillars: Waste Management, CSR Partnerships, Environmental Education (NEP 2020), and EmpowHer women's upskilling.",
+    "Explore Reclaim Era's four pillars: Waste Management, CSR Partnerships, Environmental Education, and EmpowHer women's upskilling.",
     "initiatives", initiatives_body, ""),
 "waste-management.html": ("Textile Waste Management & Recovery Factory | Reclaim Era",
     "End-to-end textile recovery at the Kogilu hub: sorting, upcycling, and downcycling to ensure zero landfill and measurable impact.",
