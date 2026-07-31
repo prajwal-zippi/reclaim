@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css?v=1785322073">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 </head>
 <body>
 <div class="utility">
@@ -98,6 +99,19 @@
     </div>
   </div>
 </section>
+<section class="section branch-section" style="padding-top:20px">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Find Reclaim Era</p>
+      <h2>Our branches and collection hubs.</h2>
+      <p>Select a branch to focus it on the map. Please contact the team before visiting.</p>
+    </div>
+    <div class="branch-layout">
+      <div class="branch-list" data-render="branches"></div>
+      <div id="branchMap" class="branch-map" aria-label="Map of Reclaim Era branches"></div>
+    </div>
+  </div>
+</section>
 </main>
 
 <footer class="footer">
@@ -180,6 +194,7 @@
     </div>
   </div>
 </footer>
+<script src="vendor/leaflet/leaflet.js"></script>
 <script src="js/config.js?v=1785322073"></script>
 <script src="js/gallery-data.js?v=1785322073"></script>
 <script src="js/site-data.js?v=1785322073"></script>

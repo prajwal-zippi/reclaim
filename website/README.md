@@ -77,25 +77,18 @@ transport cost; the current prices and distance rules are shown on that page.
 
 ## Admin dashboard
 
-`admin.html` (not linked from the site — share the URL privately) lets the client edit
-**shop products** (add/remove/reorder/hide, names, prices, impact lines, artwork),
-the **impact numbers** in the home hero, and the **contact phone number**.
+`admin.html` lets the client manage shop products, gallery entries, impact numbers and
+the contact phone number. `admin-content.html` manages the seller profile, team,
+contributors, volunteers, environmental education resources, and map branches.
 
-- **Login**: if the optional backend (`../backend/`) is running, login is server-verified
-  against a PBKDF2 hash in Neon and the password can be changed from the dashboard. On
-  pure-static hosting (no backend) it falls back to a client-side passcode in `admin.html`
-  (`FALLBACK_PASSCODE`, convenience-only — keep the /admin.html URL private). Default in
-  both cases: `Reclaim@2026` — **change it right after the
-  first login** using the "Admin password" section (minimum 8 characters with an
-  uppercase letter, a lowercase letter, a number and a special symbol — enforced by
-  the server). Forgot it? Run `DELETE FROM admin_settings;` in Neon's SQL editor and
-  restart the backend — it re-seeds the default.
-- Edits save instantly as a draft **on that device only** and can be previewed across the
-  site (a yellow "draft preview" bar appears).
-- **Publish** = press "Download publish file" and replace `js/site-data.js` on the
-  hosting with the downloaded file. That's the only step that changes the live site.
-- The shop grids, hero impact chips, and phone placeholders all render from
-  `js/site-data.js` via `js/render.js`.
+- Login is always server-verified against a PBKDF2 password hash stored in Neon. There
+  is no client-side fallback password.
+- Set `DATABASE_URL`, `ADMIN_SESSION_SECRET`, `ADMIN_INITIAL_PASSWORD`, and optionally
+  `ADMIN_INITIAL_USERNAME` in Netlify before the first login.
+- Passwords require at least eight characters with uppercase, lowercase, a number and
+  a special symbol. The dashboard can change both username and password.
+- Changes publish to Neon automatically and are reflected on public pages immediately.
+  The download button creates a complete local backup; it is not required to publish.
 
 ## Before going live — placeholders to replace
 

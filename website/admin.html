@@ -69,7 +69,8 @@
     <span class="wordmark" style="display:block">re<span class="k">cla</span><span class="di">&#305;<i></i></span><span class="k">m</span> <span class="t">era</span><span class="dot">.</span></span>
     <p style="font-weight:700;margin-bottom:4px">Admin dashboard</p>
     <p style="font-size:.88rem;color:var(--ink-soft);margin-bottom:20px">Enter the admin password to manage the shop and site numbers.</p>
-    <div class="field"><input type="password" id="passInput" placeholder="Password" autocomplete="current-password"></div>
+    <div class="field"><input type="text" id="userInput" value="admin" placeholder="Username" autocomplete="username"></div>
+    <div class="field" style="margin-top:10px"><input type="password" id="passInput" placeholder="Password" autocomplete="current-password"></div>
     <p id="passError" style="display:none;color:#a3341f;font-size:.85rem;font-weight:600;margin-top:10px">That password is not right. Try again.</p>
     <button class="btn btn-green" style="width:100%;margin-top:16px" onclick="tryPass()">Open Dashboard</button>
     <p style="font-size:.78rem;color:var(--ink-soft);margin-top:16px"><a href="index.html" style="text-decoration:underline">Back to the website</a></p>
@@ -83,6 +84,7 @@
       <span class="adm-badge">Admin</span>
     </div>
     <span style="display:flex;gap:8px">
+      <a href="admin-content.html" class="btn btn-green btn-sm">Manage all content</a>
       <a href="index.html" target="_blank" class="btn btn-outline btn-sm">View site ↗</a>
       <button class="btn btn-outline btn-sm" onclick="adminLogout()">Log out</button>
     </span>
@@ -133,7 +135,8 @@
   <section class="adm-section">
     <h2>Admin password</h2>
     <p class="sub">Change the password you use to open this dashboard. It must be at least 8 characters and include an uppercase letter, a lowercase letter, a number and a special symbol.</p>
-    <div class="adm-grid-3">
+    <div class="adm-grid-2">
+      <div class="field"><label>Username</label><input type="text" id="accountUsername" autocomplete="username" value="admin"></div>
       <div class="field"><label>Current password</label><input type="password" id="pwCurrent" autocomplete="current-password"></div>
       <div class="field"><label>New password</label><input type="password" id="pwNew" autocomplete="new-password"></div>
       <div class="field"><label>Confirm new password</label><input type="password" id="pwConfirm" autocomplete="new-password"></div>
@@ -178,8 +181,8 @@
     ? "http://localhost:5001"
     : (window.RE_API_BASE || "");
   var TOKEN_KEY = "re-admin-token";
-  var HAS_BACKEND = window.RE_HAS_BACKEND !== false;  // false = pure-static (download to publish)
-  var FALLBACK_PASSCODE = "Reclaim@2026";  // used in pure-static mode; change it
+  var USERNAME_KEY = "re-admin-username";
+  var HAS_BACKEND = window.RE_HAS_BACKEND !== false;
 
   var gate = document.getElementById("gate");
   var passError = document.getElementById("passError");
@@ -191,9 +194,7 @@
 
   /* restore an existing session if the token is still valid */
   var savedToken = sessionStorage.getItem(TOKEN_KEY);
-  if (savedToken === "local") {
-    gate.remove(); if (window.__enterDashboard) window.__enterDashboard();  // pure-static session
-  } else if (savedToken) {
+  if (savedToken) {
     fetch(API_BASE + "/api/admin/check", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -207,23 +208,23 @@
   window.tryPass = function () {
     passError.style.display = "none";
     if (!HAS_BACKEND) {
-      if (document.getElementById("passInput").value === FALLBACK_PASSCODE) {
-        sessionStorage.setItem(TOKEN_KEY, "local");
-        gate.remove(); if (window.__enterDashboard) window.__enterDashboard();
-      } else {
-        gateError("That password is not right. Try again.");
-      }
+      gateError("Secure admin service is not configured for this deployment.");
       return;
     }
     fetch(API_BASE + "/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: document.getElementById("passInput").value })
+      body: JSON.stringify({
+        username: document.getElementById("userInput").value,
+        password: document.getElementById("passInput").value
+      })
     })
       .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
       .then(function (r) {
         if (r.ok && r.d.token) {
           sessionStorage.setItem(TOKEN_KEY, r.d.token);
+          sessionStorage.setItem(USERNAME_KEY, document.getElementById("userInput").value.trim() || "admin");
+          document.getElementById("accountUsername").value = sessionStorage.getItem(USERNAME_KEY);
           gate.remove(); if (window.__enterDashboard) window.__enterDashboard();
         } else {
           gateError((r.d && r.d.error) || "That password is not right. Try again.");
@@ -239,11 +240,13 @@
 
   window.adminLogout = function () {
     sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USERNAME_KEY);
     location.reload();
   };
 
   /* ------- change password (policy checked live here AND on the server) ------- */
   var pwNew = document.getElementById("pwNew");
+  document.getElementById("accountUsername").value = sessionStorage.getItem(USERNAME_KEY) || "admin";
   function policyState(pw) {
     return {
       len: pw.length >= 8,
@@ -284,6 +287,7 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         token: sessionStorage.getItem(TOKEN_KEY),
+        username: document.getElementById("accountUsername").value,
         current_password: current,
         new_password: next
       })
@@ -292,6 +296,7 @@
       .then(function (r) {
         if (r.ok && r.d.ok) {
           if (r.d.token) sessionStorage.setItem(TOKEN_KEY, r.d.token);
+          sessionStorage.setItem(USERNAME_KEY, document.getElementById("accountUsername").value.trim());
           msg.style.color = "var(--green-deep)";
           msg.textContent = "Password updated. Use the new password from your next login.";
           document.getElementById("pwCurrent").value = pwNew.value = document.getElementById("pwConfirm").value = "";
@@ -382,6 +387,10 @@
     state.stats = src && src.stats ? copy(src.stats) : {};
     state.phone = (src && src.phone) || "";
     state.gallery = src && src.gallery ? copy(src.gallery) : (window.RE_GALLERY ? copy(window.RE_GALLERY) : []);
+    state.seller = src && src.seller ? copy(src.seller) : copy((window.RE_DATA || {}).seller || {});
+    state.team = src && src.team ? copy(src.team) : copy((window.RE_DATA || {}).team || {});
+    state.educationArticles = src && src.educationArticles ? copy(src.educationArticles) : copy((window.RE_DATA || {}).educationArticles || []);
+    state.branches = src && src.branches ? copy(src.branches) : copy((window.RE_DATA || {}).branches || []);
   }
 
   function save() {
@@ -586,12 +595,8 @@
     publishing = true;
     publishQueued = false;
     var publishingVersion = changeVersion;
-    var contentToPublish = copy({
-      phone: state.phone,
-      stats: state.stats,
-      products: state.products,
-      gallery: state.gallery
-    });
+    var contentToPublish = copy(state);
+    var publishSucceeded = false;
     publishBtn.disabled = true;
     publishBtn.textContent = "Publishing…";
     statusEl.textContent = "Publishing…";
@@ -606,6 +611,7 @@
       .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
       .then(function (r) {
         if (r.ok && r.d.ok) {
+          publishSucceeded = true;
           dirty = changeVersion !== publishingVersion;
           var published = contentToPublish;
           localStorage.removeItem(R.PREVIEW_KEY);  // published → drop device draft
@@ -629,7 +635,7 @@
         publishing = false;
         publishBtn.disabled = false;
         publishBtn.textContent = "Save & publish to site";
-        if (publishQueued || dirty) {
+        if (publishQueued || (publishSucceeded && dirty)) {
           publishQueued = false;
           window.clearTimeout(autoPublishTimer);
           autoPublishTimer = window.setTimeout(function () {
@@ -642,7 +648,7 @@
   /* backup: download a site-data.js you can commit as the static fallback */
   window.downloadPublish = function () {
     var content = "/* Reclaim Era site-data backup — " + new Date().toLocaleString() + " */\n" +
-      "window.RE_DATA = " + JSON.stringify({ phone: state.phone, stats: state.stats, products: state.products }, null, 2) + ";\n";
+      "window.RE_DATA = " + JSON.stringify(state, null, 2) + ";\n";
     var blob = new Blob([content], { type: "text/javascript" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);

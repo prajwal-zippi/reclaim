@@ -102,6 +102,117 @@
     }).join("");
   }
 
+  function safeHttps(value) {
+    try { return new URL(String(value || "")).protocol === "https:" ? String(value) : ""; }
+    catch (e) { return ""; }
+  }
+
+  function initials(name) {
+    return String(name || "").split(/\s+/).filter(Boolean).slice(0, 2).map(function (part) {
+      return part.charAt(0).toUpperCase();
+    }).join("") || "RE";
+  }
+
+  function renderTeam(data) {
+    var root = document.querySelector('[data-render="team"]');
+    if (!root) return;
+    var team = data.team || {};
+    var categories = [
+      ["core", "Core Team"],
+      ["contributors", "Contributors"],
+      ["volunteers", "Volunteers"]
+    ];
+    root.innerHTML = categories.map(function (entry) {
+      var members = Array.isArray(team[entry[0]]) ? team[entry[0]] : [];
+      if (!members.length) return "";
+      var cards = members.map(function (member) {
+        var href = safeHttps(member.profileUrl);
+        var photo = member.imageUrl
+          ? '<img src="' + esc(resolveImg(member.imageUrl)) + '" alt="' + esc(member.name) + '" loading="lazy">'
+          : '<span>' + esc(initials(member.name)) + "</span>";
+        var body = '<div class="team-photo">' + photo + "</div><h4>" + esc(member.name) + "</h4>"
+          + '<p class="role">' + esc(member.role) + "</p>"
+          + (member.description ? "<p>" + esc(member.description) + "</p>" : "")
+          + (href ? '<span class="profile-link">View profile ↗</span>' : "");
+        return href
+          ? '<a class="team-card team-card-link" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">' + body + "</a>"
+          : '<article class="team-card">' + body + "</article>";
+      }).join("");
+      return '<section class="team-category"><div class="team-category-head"><p class="eyebrow">' + entry[1]
+        + '</p><span>' + members.length + (members.length === 1 ? " member" : " members") + '</span></div><div class="team-grid">' + cards + "</div></section>";
+    }).join("");
+  }
+
+  function renderSeller(data) {
+    var root = document.querySelector('[data-render="seller"]');
+    if (!root) return;
+    var seller = data.seller || {};
+    var href = safeHttps(seller.profileUrl);
+    root.innerHTML = '<div><p class="eyebrow">Seller profile</p><h3>' + esc(seller.name || "Reclaim Era Upcycle Shop")
+      + '</h3><p>' + esc(seller.description || "Shop directly from Reclaim Era and support education and green livelihoods.") + "</p></div>"
+      + (href ? '<a class="btn btn-green" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">'
+        + esc(seller.linkLabel || "Visit seller profile") + " ↗</a>" : '<a class="btn btn-outline" href="contact.html">Contact the seller</a>');
+  }
+
+  function renderEducation(data) {
+    var root = document.querySelector('[data-render="education"]');
+    if (!root) return;
+    var articles = Array.isArray(data.educationArticles) ? data.educationArticles : [];
+    root.innerHTML = articles.map(function (article) {
+      var href = safeHttps(article.linkUrl);
+      var media = article.imageUrl
+        ? '<div class="resource-media"><img src="' + esc(resolveImg(article.imageUrl)) + '" alt="' + esc(article.title) + '" loading="lazy"></div>'
+        : '<div class="resource-media resource-placeholder"><span>Environmental learning</span></div>';
+      return '<article class="resource-card">' + media + '<div class="resource-body"><h3>' + esc(article.title)
+        + "</h3><p>" + esc(article.description) + "</p>"
+        + (href ? '<a href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">'
+          + esc(article.linkLabel || "Learn more") + " ↗</a>" : "") + "</div></article>";
+    }).join("");
+  }
+
+  var branchMap = null;
+  function renderBranches(data) {
+    var list = document.querySelector('[data-render="branches"]');
+    var mapEl = document.getElementById("branchMap");
+    if (!list && !mapEl) return;
+    var branches = (Array.isArray(data.branches) ? data.branches : []).filter(function (branch) {
+      return Number.isFinite(Number(branch.latitude)) && Number.isFinite(Number(branch.longitude));
+    });
+    if (list) {
+      list.innerHTML = branches.map(function (branch, index) {
+        return '<button class="branch-card" data-branch-index="' + index + '"><span class="branch-type">'
+          + (branch.type === "main" ? "Main branch" : "Sub-branch") + "</span><strong>" + esc(branch.name)
+          + "</strong><span>" + esc(branch.address) + "</span>"
+          + (branch.contact ? "<small>" + esc(branch.contact) + "</small>" : "") + "</button>";
+      }).join("") || "<p>No branch locations have been published yet.</p>";
+    }
+    if (!mapEl || !window.L || !branches.length) return;
+    if (branchMap) branchMap.remove();
+    branchMap = window.L.map(mapEl, { scrollWheelZoom: false });
+    window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+    }).addTo(branchMap);
+    var bounds = [];
+    var markers = branches.map(function (branch) {
+      var latlng = [Number(branch.latitude), Number(branch.longitude)];
+      bounds.push(latlng);
+      var popup = document.createElement("div");
+      var title = document.createElement("strong"); title.textContent = branch.name || "Reclaim Era branch";
+      var address = document.createElement("p"); address.textContent = branch.address || "";
+      popup.appendChild(title); popup.appendChild(address);
+      if (branch.contact) { var contact = document.createElement("small"); contact.textContent = branch.contact; popup.appendChild(contact); }
+      return window.L.marker(latlng, { title: branch.name || "Branch", alt: branch.name || "Branch" }).addTo(branchMap).bindPopup(popup);
+    });
+    branchMap.fitBounds(bounds, { padding: [34, 34], maxZoom: 14 });
+    if (list) list.onclick = function (event) {
+      var card = event.target.closest("[data-branch-index]");
+      if (!card) return;
+      var marker = markers[Number(card.getAttribute("data-branch-index"))];
+      if (marker) { branchMap.setView(marker.getLatLng(), 15); marker.openPopup(); }
+    };
+  }
+
   /* ---------- apply a content object to the page ---------- */
   function apply(data, gallery) {
     document.querySelectorAll('[data-render="products"]').forEach(function (el) {
@@ -123,6 +234,10 @@
     }
     var grid = document.getElementById("galleryGrid");
     if (grid) renderGallery(grid, gallery);
+    renderTeam(data);
+    renderSeller(data);
+    renderEducation(data);
+    renderBranches(data);
   }
 
   /* ---------- resolve: static baseline, then published live content ---------- */
@@ -135,13 +250,21 @@
 
   function applyLive(live) {
     apply(
-      { products: live.products || staticData.products, stats: live.stats || staticData.stats, phone: live.phone || staticData.phone },
+      {
+        products: live.products || staticData.products,
+        stats: live.stats || staticData.stats,
+        phone: live.phone || staticData.phone,
+        seller: live.seller || staticData.seller,
+        team: live.team || staticData.team,
+        educationArticles: live.educationArticles || staticData.educationArticles,
+        branches: live.branches || staticData.branches
+      },
       live.gallery || staticGallery
     );
   }
 
   function cacheAndApply(live) {
-    if (!live || !(live.products || live.stats || live.phone || live.gallery)) return;
+    if (!live || !(live.products || live.stats || live.phone || live.gallery || live.team || live.seller || live.educationArticles || live.branches)) return;
     applyLive(live);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(live)); } catch (e) {}
   }
@@ -154,7 +277,7 @@
     })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (live) {
-        if (live && (live.products || live.stats || live.phone || live.gallery)) {
+        if (live && (live.products || live.stats || live.phone || live.gallery || live.team || live.seller || live.educationArticles || live.branches)) {
           cacheAndApply(live);
         } else {
           try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
@@ -170,7 +293,7 @@
     // instant paint from a cached copy of the live content (fast repeat visits)
     try {
       var cached = JSON.parse(localStorage.getItem(CACHE_KEY));
-      if (cached && (cached.products || cached.stats || cached.phone || cached.gallery)) applyLive(cached);
+      if (cached && (cached.products || cached.stats || cached.phone || cached.gallery || cached.team || cached.seller || cached.educationArticles || cached.branches)) applyLive(cached);
     } catch (e) {}
     // Revalidate now, whenever the tab is revisited, and once per minute. An
     // admin save also pushes the same content instantly through BroadcastChannel

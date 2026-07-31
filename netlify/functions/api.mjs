@@ -9,6 +9,7 @@ import { neon } from "@neondatabase/serverless";
 const DATABASE_URL = process.env.DATABASE_URL || "";
 const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || "";
 const INITIAL_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD || "";
+const INITIAL_USERNAME = process.env.ADMIN_INITIAL_USERNAME || "admin";
 const TOKEN_TTL_SECONDS = 12 * 60 * 60;
 const PBKDF2_ITERATIONS = 240_000;
 const MAX_IMAGE_BYTES = 3_500_000;
@@ -80,10 +81,10 @@ function passwordMeetsPolicy(password) {
   );
 }
 
-function makeToken(passwordHash) {
+function makeToken(username, passwordHash) {
   const expiry = String(Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS);
   const passwordVersion = createHmac("sha256", SESSION_SECRET)
-    .update(String(passwordHash))
+    .update(`${username}:${passwordHash}`)
     .digest("hex")
     .slice(0, 24);
   const payload = `${expiry}.${passwordVersion}`;
@@ -101,10 +102,10 @@ async function tokenValid(token) {
       signature.length === expected.length &&
       timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
     if (!signatureValid) return false;
-    const rows = await sql`SELECT password_hash FROM admin_settings WHERE id = 1`;
+    const rows = await sql`SELECT username, password_hash FROM admin_settings WHERE id = 1`;
     if (!rows.length) return false;
     const currentVersion = createHmac("sha256", SESSION_SECRET)
-      .update(String(rows[0].password_hash))
+      .update(`${rows[0].username}:${rows[0].password_hash}`)
       .digest("hex")
       .slice(0, 24);
     return (
@@ -163,10 +164,12 @@ async function ensureSchema() {
       await sql`
         CREATE TABLE IF NOT EXISTS admin_settings (
           id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+          username TEXT NOT NULL DEFAULT 'admin',
           password_hash TEXT NOT NULL,
           updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
       `;
+      await sql`ALTER TABLE admin_settings ADD COLUMN IF NOT EXISTS username TEXT NOT NULL DEFAULT 'admin'`;
       await sql`
         CREATE TABLE IF NOT EXISTS site_content (
           id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
@@ -190,6 +193,22 @@ async function ensureSchema() {
           blocked_until TIMESTAMPTZ
         )
       `;
+      await sql`
+        CREATE TABLE IF NOT EXISTS geocode_cache (
+          query TEXT PRIMARY KEY,
+          latitude DOUBLE PRECISION NOT NULL,
+          longitude DOUBLE PRECISION NOT NULL,
+          display_name TEXT NOT NULL DEFAULT '',
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+      `;
+      await sql`
+        CREATE TABLE IF NOT EXISTS geocode_rate (
+          id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+          last_request TIMESTAMPTZ NOT NULL DEFAULT to_timestamp(0)
+        )
+      `;
+      await sql`INSERT INTO geocode_rate (id) VALUES (1) ON CONFLICT (id) DO NOTHING`;
     })().catch((error) => {
       schemaReady = undefined;
       throw error;
@@ -211,10 +230,31 @@ function validateContent(content) {
   if (content.products.length > 200 || content.gallery.length > 300) {
     return "Too many products or gallery entries.";
   }
-  const unsafeImage = [...content.products, ...content.gallery].some(
+  const teamMembers = ["core", "contributors", "volunteers"].flatMap(
+    (key) => Array.isArray(content.team && content.team[key]) ? content.team[key] : []
+  );
+  const education = Array.isArray(content.educationArticles) ? content.educationArticles : [];
+  const branches = Array.isArray(content.branches) ? content.branches : [];
+  if (teamMembers.length > 200 || education.length > 200 || branches.length > 100) {
+    return "Too many team members, education entries, or branches.";
+  }
+  const unsafeImage = [...content.products, ...content.gallery, ...teamMembers, ...education].some(
     (item) => item && !validImageUrl(item.imageUrl)
   );
   if (unsafeImage) return "Image URLs must use HTTPS or a secure uploaded image.";
+  const externalLinks = [
+    content.seller && content.seller.profileUrl,
+    ...teamMembers.map((item) => item && item.profileUrl),
+    ...education.map((item) => item && item.linkUrl),
+  ].filter(Boolean);
+  if (externalLinks.some((value) => {
+    try { return new URL(String(value)).protocol !== "https:"; } catch { return true; }
+  })) return "External links must use HTTPS.";
+  if (branches.some((branch) => {
+    const lat = Number(branch && branch.latitude);
+    const lng = Number(branch && branch.longitude);
+    return !Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180;
+  })) return "Every branch needs valid map coordinates.";
   return "";
 }
 
@@ -247,7 +287,8 @@ async function login(body, event) {
     return json(429, { ok: false, error: "Too many login attempts. Try again in 15 minutes." });
   }
   const password = String(body.password || "");
-  let rows = await sql`SELECT password_hash FROM admin_settings WHERE id = 1`;
+  const username = String(body.username || "admin").trim();
+  let rows = await sql`SELECT username, password_hash FROM admin_settings WHERE id = 1`;
   if (!rows.length) {
     if (!INITIAL_PASSWORD || !passwordMeetsPolicy(INITIAL_PASSWORD)) {
       return json(503, {
@@ -256,13 +297,13 @@ async function login(body, event) {
       });
     }
     await sql`
-      INSERT INTO admin_settings (id, password_hash)
-      VALUES (1, ${hashPassword(INITIAL_PASSWORD)})
+      INSERT INTO admin_settings (id, username, password_hash)
+      VALUES (1, ${INITIAL_USERNAME}, ${hashPassword(INITIAL_PASSWORD)})
       ON CONFLICT (id) DO NOTHING
     `;
-    rows = await sql`SELECT password_hash FROM admin_settings WHERE id = 1`;
+    rows = await sql`SELECT username, password_hash FROM admin_settings WHERE id = 1`;
   }
-  if (!rows.length || !verifyPassword(password, rows[0].password_hash)) {
+  if (!rows.length || username !== rows[0].username || !verifyPassword(password, rows[0].password_hash)) {
     await sql`
       INSERT INTO admin_login_attempts (client_hash, failures, window_started, blocked_until)
       VALUES (${ipHash}, 1, now(), NULL)
@@ -289,10 +330,10 @@ async function login(body, event) {
           ELSE NULL
         END
     `;
-    return json(401, { ok: false, error: "Wrong password." });
+    return json(401, { ok: false, error: "Wrong username or password." });
   }
   await sql`DELETE FROM admin_login_attempts WHERE client_hash = ${ipHash}`;
-  return json(200, { ok: true, token: makeToken(rows[0].password_hash) });
+  return json(200, { ok: true, token: makeToken(rows[0].username, rows[0].password_hash) });
 }
 
 async function changePassword(body) {
@@ -303,17 +344,71 @@ async function changePassword(body) {
       error: "Use at least 8 characters with uppercase, lowercase, a number and a special symbol.",
     });
   }
-  const rows = await sql`SELECT password_hash FROM admin_settings WHERE id = 1`;
+  const username = String(body.username || "").trim();
+  if (!/^[A-Za-z0-9._-]{3,40}$/.test(username)) {
+    return json(400, { ok: false, error: "Username must be 3-40 letters, numbers, dots, dashes, or underscores." });
+  }
+  const rows = await sql`SELECT username, password_hash FROM admin_settings WHERE id = 1`;
   if (!rows.length || !verifyPassword(String(body.current_password || ""), rows[0].password_hash)) {
     return json(401, { ok: false, error: "Current password is wrong." });
   }
   const newHash = hashPassword(body.new_password);
   await sql`
     UPDATE admin_settings
-    SET password_hash = ${newHash}, updated_at = now()
+    SET username = ${username}, password_hash = ${newHash}, updated_at = now()
     WHERE id = 1
   `;
-  return json(200, { ok: true, token: makeToken(newHash) });
+  return json(200, { ok: true, token: makeToken(username, newHash) });
+}
+
+async function geocodeAddress(body) {
+  if (!(await requireToken(body))) return json(401, { ok: false, error: "Session expired. Log in again." });
+  const query = String(body.address || "").trim().replace(/\s+/g, " ");
+  if (query.length < 8 || query.length > 300) {
+    return json(400, { ok: false, error: "Enter a complete address before locating it." });
+  }
+  const cacheKey = query.toLowerCase();
+  const cached = await sql`
+    SELECT latitude, longitude, display_name
+    FROM geocode_cache
+    WHERE query = ${cacheKey}
+  `;
+  if (cached.length) return json(200, { ok: true, ...cached[0], cached: true });
+  const allowed = await sql`
+    UPDATE geocode_rate
+    SET last_request = now()
+    WHERE id = 1 AND last_request <= now() - interval '1 second'
+    RETURNING id
+  `;
+  if (!allowed.length) return json(429, { ok: false, error: "Please wait a moment before locating another address." });
+  const endpoint = process.env.GEOCODING_BASE_URL || "https://nominatim.openstreetmap.org";
+  const response = await fetch(
+    `${endpoint}/search?format=jsonv2&limit=1&countrycodes=in&q=${encodeURIComponent(query)}`,
+    {
+      headers: {
+        "User-Agent": "ReclaimEraWebsite/1.0 (reclaimera@gmail.com)",
+        "Accept-Language": "en",
+      },
+    }
+  );
+  if (!response.ok) return json(502, { ok: false, error: "The map service could not locate that address." });
+  const results = await response.json();
+  if (!Array.isArray(results) || !results.length) {
+    return json(404, { ok: false, error: "Address not found. Enter latitude and longitude manually." });
+  }
+  const latitude = Number(results[0].lat);
+  const longitude = Number(results[0].lon);
+  const displayName = String(results[0].display_name || query).slice(0, 500);
+  await sql`
+    INSERT INTO geocode_cache (query, latitude, longitude, display_name, updated_at)
+    VALUES (${cacheKey}, ${latitude}, ${longitude}, ${displayName}, now())
+    ON CONFLICT (query) DO UPDATE SET
+      latitude = EXCLUDED.latitude,
+      longitude = EXCLUDED.longitude,
+      display_name = EXCLUDED.display_name,
+      updated_at = now()
+  `;
+  return json(200, { ok: true, latitude, longitude, display_name: displayName, cached: false });
 }
 
 async function getContent() {
@@ -401,6 +496,7 @@ export async function handler(event) {
     if (method === "POST" && path === "/api/admin/change-password") return changePassword(body);
     if (method === "POST" && path === "/api/admin/content") return saveContent(body);
     if (method === "POST" && path === "/api/admin/upload") return uploadImage(body);
+    if (method === "POST" && path === "/api/admin/geocode") return geocodeAddress(body);
     if (method === "GET" && path.startsWith("/api/image/")) {
       return getImage(decodeURIComponent(path.slice("/api/image/".length)));
     }

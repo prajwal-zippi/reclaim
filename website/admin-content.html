@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Content Manager - Reclaim Era Admin</title>
+<link rel="icon" href="assets/favicon.png">
+<link rel="stylesheet" href="css/style.css">
+<style>
+body{padding-bottom:100px}.cm-head{position:sticky;top:0;z-index:50;background:var(--ink);color:#fff;padding:14px 0}.cm-head .wrap,.cm-actions .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.cm-head h1{font-size:1.25rem;margin-right:auto}.cm-nav{display:flex;gap:8px;flex-wrap:wrap}.cm-nav a{color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:8px 13px;font-size:.78rem;font-weight:700}.cm-section{margin:38px 0}.cm-section-head{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-bottom:16px;flex-wrap:wrap}.cm-section h2{font-size:1.55rem}.cm-section .sub{color:var(--ink-soft);font-size:.9rem;max-width:700px}.cm-card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:14px}.cm-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.cm-grid .full{grid-column:1/-1}.cm-toolbar{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}.cm-toolbar .spacer{flex:1}.cm-toolbar button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 11px;font-weight:700}.cm-toolbar .danger{color:#a3341f}.cm-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}.cm-tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 15px;font-weight:700}.cm-tabs button.active{background:var(--ink);color:#fff}.cm-actions{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--ink);color:#fff;padding:12px 0 calc(12px + env(safe-area-inset-bottom))}.cm-status{font-size:.82rem;color:rgba(255,255,255,.75);margin-right:auto}.cm-actions button:disabled{opacity:.55}.upload-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.upload-row input{max-width:100%}.coord-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}.type-pill{font-size:.72rem;font-weight:800;text-transform:uppercase;color:var(--green-deep)}.gate{position:fixed;inset:0;z-index:300;background:var(--cream);display:grid;place-items:center;padding:24px}.gate .form-card{max-width:420px;width:100%;text-align:center}@media(max-width:700px){.cm-grid,.coord-grid{grid-template-columns:1fr}.cm-grid .full{grid-column:auto}.cm-actions .cm-status{width:100%}.cm-actions .btn{flex:1}}
+</style>
+</head>
+<body>
+<div class="gate" id="gate"><div class="form-card">
+  <span class="wordmark" style="display:block;font-size:1.55rem">re<span class="k">cla</span><span class="di">&#305;<i></i></span><span class="k">m</span> <span class="t">era</span><span class="dot">.</span></span>
+  <h2 style="margin:12px 0 6px">Content manager</h2>
+  <p style="color:var(--ink-soft);margin-bottom:18px">Log in to manage people, seller information, education and branches.</p>
+  <div class="field"><input id="cmUser" value="admin" placeholder="Username" autocomplete="username"></div>
+  <div class="field" style="margin-top:10px"><input id="cmPass" type="password" placeholder="Password" autocomplete="current-password"></div>
+  <p id="cmLoginError" style="color:#a3341f;font-weight:700;font-size:.85rem;margin-top:10px"></p>
+  <button class="btn btn-green" style="width:100%;margin-top:12px" id="cmLogin">Open content manager</button>
+</div></div>
+
+<header class="cm-head"><div class="wrap">
+  <h1>Reclaim Era Content Manager</h1>
+  <nav class="cm-nav"><a href="admin.html">Products & numbers</a><a href="about.html" target="_blank">View website ↗</a><a href="#" id="cmLogout">Log out</a></nav>
+</div></header>
+
+<main class="wrap">
+  <section class="cm-section">
+    <div class="cm-section-head"><div><h2>Seller profile</h2><p class="sub">Shown in the Shop section. Add an Amazon Seller profile or any secure seller page.</p></div></div>
+    <div class="cm-card"><div class="cm-grid">
+      <div class="field"><label>Seller name</label><input data-seller="name"></div>
+      <div class="field"><label>Button label</label><input data-seller="linkLabel"></div>
+      <div class="field full"><label>Profile link (HTTPS)</label><input data-seller="profileUrl" placeholder="https://amazon.in/..."></div>
+      <div class="field full"><label>Description</label><textarea data-seller="description"></textarea></div>
+    </div></div>
+  </section>
+
+  <section class="cm-section">
+    <div class="cm-section-head"><div><h2>Team</h2><p class="sub">Member cards appear under Core Team, Contributors and Volunteers. A profile link makes the whole card clickable.</p></div><button class="btn btn-green btn-sm" id="addMember">+ Add member</button></div>
+    <div class="cm-tabs" id="teamTabs"></div><div id="teamList"></div>
+  </section>
+
+  <section class="cm-section">
+    <div class="cm-section-head"><div><h2>Environmental education</h2><p class="sub">Publish articles, awareness resources, images and external links on the Education page.</p></div><button class="btn btn-green btn-sm" id="addEducation">+ Add resource</button></div>
+    <div id="educationList"></div>
+  </section>
+
+  <section class="cm-section">
+    <div class="cm-section-head"><div><h2>Branches & OpenStreetMap</h2><p class="sub">Addresses are geocoded through OpenStreetMap when you press Locate. You can adjust coordinates manually before publishing.</p></div><button class="btn btn-green btn-sm" id="addBranch">+ Add branch</button></div>
+    <div id="branchList"></div>
+  </section>
+</main>
+
+<div class="cm-actions"><div class="wrap"><span class="cm-status" id="cmStatus">Waiting for login…</span><button class="btn btn-green btn-sm" id="cmPublish">Save & publish now</button></div></div>
+
+<script src="js/config.js"></script>
+<script src="js/site-data.js"></script>
+<script>
+(function(){
+"use strict";
+var API=(location.hostname==="localhost"||location.hostname==="127.0.0.1")?"http://localhost:5001":(window.RE_API_BASE||"");
+var TOKEN_KEY="re-admin-token", USERNAME_KEY="re-admin-username", CACHE_KEY="re-content-cache", CHANNEL="reclaim-era-live-content";
+var state=null, category="core", timer=0, saving=false, queued=false, version=0, savedVersion=0;
+var gate=document.getElementById("gate"), statusEl=document.getElementById("cmStatus"), publishBtn=document.getElementById("cmPublish");
+var teamTabs=document.getElementById("teamTabs"),teamList=document.getElementById("teamList"),educationList=document.getElementById("educationList"),branchList=document.getElementById("branchList");
+var addMember=document.getElementById("addMember"),addEducation=document.getElementById("addEducation"),addBranch=document.getElementById("addBranch");
+var cmLogin=document.getElementById("cmLogin"),cmPass=document.getElementById("cmPass"),cmLogout=document.getElementById("cmLogout");
+function esc(v){return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function copy(v){return JSON.parse(JSON.stringify(v))}
+function ensure(data){
+  data=data||{};var defaults=copy(window.RE_DATA||{});
+  data.products=Array.isArray(data.products)?data.products:(defaults.products||[]); data.gallery=Array.isArray(data.gallery)?data.gallery:[];
+  data.team=data.team||copy(defaults.team||{}); ["core","contributors","volunteers"].forEach(function(k){data.team[k]=Array.isArray(data.team[k])?data.team[k]:copy((defaults.team&&defaults.team[k])||[])});
+  data.seller=data.seller||copy(defaults.seller||{name:"Reclaim Era Upcycle Shop",description:"",profileUrl:"",linkLabel:"Visit seller profile"});
+  data.educationArticles=Array.isArray(data.educationArticles)?data.educationArticles:copy(defaults.educationArticles||[]);
+  data.branches=Array.isArray(data.branches)?data.branches:copy(defaults.branches||[]);
+  return data;
+}
+function request(path,options){return fetch(API+path,options).then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d}})})}
+function login(){
+  statusEl.textContent="Logging in…";
+  request("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:document.getElementById("cmUser").value,password:document.getElementById("cmPass").value})}).then(function(r){
+    if(!r.ok){document.getElementById("cmLoginError").textContent=r.data.error||"Login failed.";return}
+    sessionStorage.setItem(TOKEN_KEY,r.data.token);sessionStorage.setItem(USERNAME_KEY,document.getElementById("cmUser").value.trim()||"admin");enter();
+  }).catch(function(){document.getElementById("cmLoginError").textContent="Could not reach the secure service."});
+}
+function enter(){gate.remove();load()}
+function load(){
+  statusEl.textContent="Loading live content…";
+  request("/api/content",{headers:{Accept:"application/json"}}).then(function(r){
+    state=ensure(r.ok?r.data:copy(window.RE_DATA||{}));render();statusEl.textContent="Connected. Changes publish automatically.";
+  }).catch(function(){state=ensure(copy(window.RE_DATA||{}));render();statusEl.textContent="Offline fallback loaded. Publishing needs the backend."});
+}
+function changed(){
+  version++;statusEl.textContent="Changes detected - publishing automatically…";clearTimeout(timer);timer=setTimeout(save,900);
+}
+function save(){
+  if(!state)return;if(saving){queued=true;return}var token=sessionStorage.getItem(TOKEN_KEY);if(!token){statusEl.textContent="Session expired. Log in again.";return}
+  saving=true;queued=false;var snapshot=copy(state),thisVersion=version;publishBtn.disabled=true;publishBtn.textContent="Publishing…";
+  var successful=false;
+  request("/api/admin/content",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:token,content:snapshot})}).then(function(r){
+    if(!r.ok){statusEl.textContent=r.data.error||"Could not publish.";return}
+    successful=true;savedVersion=thisVersion;try{localStorage.setItem(CACHE_KEY,JSON.stringify(snapshot))}catch(e){}
+    if("BroadcastChannel" in window){try{var ch=new BroadcastChannel(CHANNEL);ch.postMessage(snapshot);ch.close()}catch(e){}}
+    statusEl.textContent="Saved & published ✓";
+  }).catch(function(){statusEl.textContent="Could not reach the server."}).finally(function(){saving=false;publishBtn.disabled=false;publishBtn.textContent="Save & publish now";if(queued||(successful&&version>savedVersion)){queued=false;clearTimeout(timer);timer=setTimeout(save,300)}});
+}
+function input(label,value,key,index,scope,extra){return '<div class="field '+(extra||"")+'"><label>'+label+'</label><input value="'+esc(value)+'" data-key="'+key+'" data-index="'+index+'" data-scope="'+scope+'"></div>'}
+function textarea(label,value,key,index,scope){return '<div class="field full"><label>'+label+'</label><textarea data-key="'+key+'" data-index="'+index+'" data-scope="'+scope+'">'+esc(value)+'</textarea></div>'}
+function upload(label,index,scope){return '<div class="field full upload-row"><label>'+label+'</label><input type="file" accept="image/png,image/jpeg" data-upload="'+scope+'" data-index="'+index+'"></div>'}
+function toolbar(index,scope){return '<div class="cm-toolbar"><span class="spacer"></span><button data-move="-1" data-index="'+index+'" data-scope="'+scope+'">↑</button><button data-move="1" data-index="'+index+'" data-scope="'+scope+'">↓</button><button class="danger" data-delete data-index="'+index+'" data-scope="'+scope+'">Remove</button></div>'}
+function render(){
+  document.querySelectorAll("[data-seller]").forEach(function(el){el.value=state.seller[el.dataset.seller]||""});
+  var labels={core:"Core Team",contributors:"Contributors",volunteers:"Volunteers"};
+  teamTabs.innerHTML=Object.keys(labels).map(function(k){return '<button data-category="'+k+'" class="'+(k===category?"active":"")+'">'+labels[k]+'</button>'}).join("");
+  teamList.innerHTML=state.team[category].map(function(m,i){return '<div class="cm-card"><span class="type-pill">'+labels[category]+'</span><div class="cm-grid">'+input("Name",m.name,"name",i,"team")+input("Role / designation",m.role,"role",i,"team")+input("Photo URL",m.imageUrl,"imageUrl",i,"team","full")+upload("…or upload JPEG/PNG",i,"team")+input("External profile link",m.profileUrl,"profileUrl",i,"team","full")+textarea("Optional description",m.description,"description",i,"team")+'</div>'+toolbar(i,"team")+'</div>'}).join("")||'<div class="cm-card">No members in this category yet.</div>';
+  educationList.innerHTML=state.educationArticles.map(function(a,i){return '<div class="cm-card"><div class="cm-grid">'+input("Title",a.title,"title",i,"education")+input("Button label",a.linkLabel,"linkLabel",i,"education")+input("Image URL",a.imageUrl,"imageUrl",i,"education","full")+upload("…or upload JPEG/PNG",i,"education")+input("Resource link",a.linkUrl,"linkUrl",i,"education","full")+textarea("Description",a.description,"description",i,"education")+'</div>'+toolbar(i,"education")+'</div>'}).join("")||'<div class="cm-card">No education resources yet.</div>';
+  branchList.innerHTML=state.branches.map(function(b,i){return '<div class="cm-card"><span class="type-pill">'+esc(b.type||"sub")+' branch</span><div class="cm-grid">'+input("Branch name",b.name,"name",i,"branch")+'<div class="field"><label>Type</label><select data-key="type" data-index="'+i+'" data-scope="branch"><option value="main" '+(b.type==="main"?"selected":"")+'>Main branch</option><option value="sub" '+(b.type!=="main"?"selected":"")+'>Sub-branch</option></select></div>'+textarea("Complete address",b.address,"address",i,"branch")+input("Contact details",b.contact,"contact",i,"branch")+textarea("Description",b.description,"description",i,"branch")+'<div class="field full coord-grid">'+input("Latitude",b.latitude,"latitude",i,"branch")+input("Longitude",b.longitude,"longitude",i,"branch")+'<button class="btn btn-outline btn-sm" data-locate data-index="'+i+'">Locate address</button></div></div>'+toolbar(i,"branch")+'</div>'}).join("")||'<div class="cm-card">No branches yet.</div>';
+}
+function collection(scope){return scope==="team"?state.team[category]:scope==="education"?state.educationArticles:state.branches}
+document.addEventListener("input",function(e){
+  if(e.target.dataset.seller){state.seller[e.target.dataset.seller]=e.target.value;changed();return}
+  var scope=e.target.dataset.scope,key=e.target.dataset.key;if(!scope||!key)return;var item=collection(scope)[Number(e.target.dataset.index)];item[key]=(key==="latitude"||key==="longitude")?Number(e.target.value):e.target.value;changed();
+});
+document.addEventListener("change",function(e){
+  if(e.target.dataset.scope&&e.target.dataset.key){var item=collection(e.target.dataset.scope)[Number(e.target.dataset.index)];item[e.target.dataset.key]=e.target.value;changed();render();return}
+  if(e.target.dataset.upload){uploadImage(e.target.files&&e.target.files[0],e.target.dataset.upload,Number(e.target.dataset.index))}
+});
+document.addEventListener("click",function(e){
+  var tab=e.target.closest("[data-category]");if(tab){category=tab.dataset.category;render();return}
+  var del=e.target.closest("[data-delete]");if(del){collection(del.dataset.scope).splice(Number(del.dataset.index),1);changed();render();return}
+  var mv=e.target.closest("[data-move]");if(mv){var a=collection(mv.dataset.scope),i=Number(mv.dataset.index),j=i+Number(mv.dataset.move);if(j>=0&&j<a.length){var t=a[i];a[i]=a[j];a[j]=t;changed();render()}return}
+  var loc=e.target.closest("[data-locate]");if(loc)locate(Number(loc.dataset.index));
+});
+function uploadImage(file,scope,index){
+  if(!file)return;if(!/^image\/(png|jpe?g)$/.test(file.type)){statusEl.textContent="Choose a JPEG or PNG.";return}
+  var reader=new FileReader();reader.onload=function(){var img=new Image();img.onload=function(){var scale=Math.min(1,1600/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext("2d").drawImage(img,0,0,c.width,c.height);var data=c.toDataURL(file.type==="image/png"?"image/png":"image/jpeg",.82);statusEl.textContent="Uploading image…";request("/api/admin/upload",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:sessionStorage.getItem(TOKEN_KEY),data:data})}).then(function(r){if(!r.ok){statusEl.textContent=r.data.error||"Upload failed.";return}collection(scope)[index].imageUrl=r.data.url;changed();render()})};img.src=reader.result};reader.readAsDataURL(file);
+}
+function locate(i){
+  var b=state.branches[i];statusEl.textContent="Locating address with OpenStreetMap…";
+  request("/api/admin/geocode",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:sessionStorage.getItem(TOKEN_KEY),address:b.address})}).then(function(r){if(!r.ok){statusEl.textContent=r.data.error||"Address not found.";return}b.latitude=Number(r.data.latitude);b.longitude=Number(r.data.longitude);changed();render();statusEl.textContent="Map coordinates updated. Publishing…"});
+}
+addMember.onclick=function(){state.team[category].push({id:"member-"+Date.now(),name:"New member",role:"",description:"",imageUrl:"",profileUrl:""});changed();render()};
+addEducation.onclick=function(){state.educationArticles.push({id:"resource-"+Date.now(),title:"New resource",description:"",imageUrl:"",linkUrl:"",linkLabel:"Learn more"});changed();render()};
+addBranch.onclick=function(){state.branches.push({id:"branch-"+Date.now(),name:"New branch",type:"sub",address:"",contact:"",description:"",latitude:13.0827,longitude:77.5877});changed();render()};
+cmLogin.onclick=login;cmPass.addEventListener("keydown",function(e){if(e.key==="Enter")login()});publishBtn.onclick=save;
+cmLogout.onclick=function(e){e.preventDefault();sessionStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem(USERNAME_KEY);location.reload()};
+var token=sessionStorage.getItem(TOKEN_KEY);if(token){request("/api/admin/check",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:token})}).then(function(r){if(r.ok)enter();else sessionStorage.removeItem(TOKEN_KEY)})}
+})();
+</script>
+</body>
+</html>

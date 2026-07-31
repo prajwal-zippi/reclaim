@@ -309,13 +309,13 @@ h1,h2,h3,.display{font-family:var(--font-display);font-weight:700;line-height:1.
   overflow:hidden;transition:transform .3s, box-shadow .3s;display:flex;flex-direction:column;
 }
 .prod-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-md)}
-.prod-card .prod-art{aspect-ratio:1/.9;display:grid;place-items:center;position:relative}
+.prod-card .prod-art{aspect-ratio:1/.9;display:grid;place-items:center;position:relative;background:radial-gradient(circle at 50% 35%,#fff 0,#f4f0e7 68%,#e9e2d4 100%);overflow:hidden}
 .prod-card .prod-art svg{width:62%;height:62%;transition:transform .4s cubic-bezier(.2,.7,.3,1)}
 .prod-card .prod-art.has-img{display:block}
 .prod-card .prod-art.has-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s cubic-bezier(.2,.7,.3,1)}
 .prod-card:hover .prod-art.has-img img{transform:scale(1.05)}
 .prod-card:hover .prod-art svg{transform:translateY(-6px) rotate(-2deg)}
-.prod-card .prod-info{padding:22px 24px 26px;border-top:1px dashed var(--line)}
+.prod-card .prod-info{padding:22px 24px 26px;border-top:1px dashed var(--line);background:linear-gradient(180deg,#fff 0,var(--paper) 100%)}
 .prod-card h4{font-family:var(--font-display);font-size:1.18rem;font-weight:650;margin-bottom:5px}
 .prod-price{font-family:var(--font-display);font-weight:700;font-size:1rem;color:var(--ink);margin:0 0 6px}
 .prod-card .imp{font-size:.8rem;color:var(--green-deep);font-weight:600;display:flex;gap:6px;align-items:center}
@@ -400,10 +400,44 @@ h1,h2,h3,.display{font-family:var(--font-display);font-weight:700;line-height:1.
 .team-card h4{font-family:var(--font-display);font-size:1.2rem;font-weight:650}
 .team-card .role{font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin:6px 0 12px}
 .team-card p{font-size:.88rem;color:var(--ink-soft)}
+.team-category+.team-category{margin-top:56px}
+.team-category-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.team-category-head .eyebrow{margin:0}
+.team-category-head span{font-size:.78rem;color:var(--ink-soft)}
+.team-photo{width:92px;height:92px;border-radius:50%;margin:0 auto 18px;overflow:hidden;display:grid;place-items:center;background:linear-gradient(145deg,var(--green-deep),var(--green));color:#fff;font-family:var(--font-display);font-size:1.65rem;font-weight:800;border:3px solid #fff;box-shadow:0 0 0 2px rgba(0,191,99,.25)}
+.team-photo img{width:100%;height:100%;object-fit:cover}
+.team-card .profile-link{display:inline-block;margin-top:14px;color:var(--green-deep);font-size:.8rem;font-weight:800}
+.team-card-link{display:block}
+
+.seller-panel{margin-top:42px;background:linear-gradient(135deg,var(--ink),#1d513b);color:#fff;border-radius:var(--radius-lg);padding:34px 38px;display:flex;justify-content:space-between;align-items:center;gap:28px}
+.seller-panel h3{font-size:1.55rem;margin:5px 0 8px}
+.seller-panel p:not(.eyebrow){color:rgba(255,255,255,.76);max-width:660px}
+.seller-panel .eyebrow{color:#65e5a3}
+
+.resource-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.resource-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+.resource-media{aspect-ratio:16/10;background:linear-gradient(145deg,#dff7e9,#f4eee2);display:grid;place-items:center;overflow:hidden}
+.resource-media img{width:100%;height:100%;object-fit:cover}
+.resource-placeholder span{font-weight:800;color:var(--green-deep)}
+.resource-body{padding:24px}
+.resource-body h3{font-size:1.15rem;margin-bottom:9px}
+.resource-body p{font-size:.88rem;color:var(--ink-soft);margin-bottom:14px}
+.resource-body a{font-size:.84rem;font-weight:800;color:var(--green-deep)}
+
+.branch-layout{display:grid;grid-template-columns:minmax(260px,.75fr) 1.5fr;gap:22px}
+.branch-list{display:grid;gap:12px;align-content:start}
+.branch-card{text-align:left;border:1px solid var(--line);background:var(--paper);border-radius:16px;padding:18px;display:grid;gap:5px;cursor:pointer;color:var(--ink);font:inherit;transition:transform .2s,box-shadow .2s}
+.branch-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.branch-card .branch-type{font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--green-deep)}
+.branch-card strong{font-family:var(--font-display)}
+.branch-card span:not(.branch-type),.branch-card small{font-size:.8rem;color:var(--ink-soft)}
+.branch-map{height:460px;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--line);background:#e6efe9;z-index:1}
 
 /* bin table (zero waste) */
 .bin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
-.bin{border-radius:var(--radius);padding:28px 24px;color:#fff;position:relative;overflow:hidden}
+.bin{border-radius:var(--radius);padding:30px 25px;color:#fff;position:relative;overflow:hidden;box-shadow:0 14px 30px rgba(23,37,30,.12);transition:transform .25s,box-shadow .25s}
+.bin::after{content:"";position:absolute;width:120px;height:120px;border:2px dashed rgba(255,255,255,.2);border-radius:50%;right:-38px;bottom:-52px}
+.bin:hover{transform:translateY(-5px);box-shadow:0 20px 38px rgba(23,37,30,.18)}
 .bin .bin-dot{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.22);display:grid;place-items:center;margin-bottom:18px}
 .bin .bin-dot svg{width:19px;height:19px}
 .bin h4{font-size:1.1rem;font-weight:700;font-family:var(--font-display);margin-bottom:4px}
@@ -712,6 +746,8 @@ body.nav-open .nav-toggle .icon-close{display:block}
   .action-grid{grid-template-columns:1fr}
   .mile-grid{grid-template-columns:1fr 1fr}
   .team-grid{grid-template-columns:1fr}
+  .resource-grid{grid-template-columns:1fr 1fr}
+  .branch-layout{grid-template-columns:1fr}
   .phase-grid{grid-template-columns:1fr}
   .res-grid{grid-template-columns:1fr}
   .form-card{padding:30px 24px}
@@ -726,6 +762,9 @@ body.nav-open .nav-toggle .icon-close{display:block}
   .brand small{font-size:.52rem;margin-top:4px}
   .section{padding:60px 0}
   .section-head{margin-bottom:38px}
+  .seller-panel{padding:28px 22px;align-items:flex-start;flex-direction:column}
+  .resource-grid{grid-template-columns:1fr}
+  .branch-map{height:360px}
   .hero{padding-top:36px}
   .hero .lede{font-size:1.04rem;margin:20px 0 26px}
   .hero-ctas{gap:10px}

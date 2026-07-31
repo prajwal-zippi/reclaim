@@ -11,6 +11,64 @@ window.RE_DATA = {
     "livelihoods": "13",
     "schools": "11"
   },
+  "seller": {
+    "name": "Reclaim Era Upcycle Shop",
+    "description": "Shop directly from Reclaim Era and support education and green livelihoods.",
+    "profileUrl": "",
+    "linkLabel": "Visit seller profile"
+  },
+  "team": {
+    "core": [
+      {
+        "id": "jaganathan-rajagopal",
+        "name": "Jaganathan Rajagopal",
+        "role": "Founder & Mentor",
+        "description": "Building the bridge between Bengaluru's waste problem and its education gap.",
+        "imageUrl": "",
+        "profileUrl": ""
+      },
+      {
+        "id": "divya-tejaswini",
+        "name": "Divya Tejaswini",
+        "role": "CEO · Networking & Outreach",
+        "description": "Connecting RWAs, campuses, and corporates into one collection network.",
+        "imageUrl": "",
+        "profileUrl": ""
+      },
+      {
+        "id": "smitha-rajarathinam",
+        "name": "Smitha Rajarathinam",
+        "role": "Head of Finance & Sales",
+        "description": "Keeping every rupee accountable, from shop sales to teacher salaries.",
+        "imageUrl": "",
+        "profileUrl": ""
+      }
+    ],
+    "contributors": [],
+    "volunteers": []
+  },
+  "educationArticles": [
+    {
+      "id": "environmental-learning",
+      "title": "Environmental learning in action",
+      "description": "Practical resources that help students understand waste, circularity and responsible consumption.",
+      "imageUrl": "",
+      "linkUrl": "",
+      "linkLabel": "Learn more"
+    }
+  ],
+  "branches": [
+    {
+      "id": "kogilu-hub",
+      "name": "Kogilu Hub",
+      "type": "main",
+      "address": "Kogilu, Yelahanka, Bengaluru, Karnataka",
+      "contact": "+91 81520 20145",
+      "description": "Reclaim Era's main collection, sorting and upcycling hub.",
+      "latitude": 13.1217,
+      "longitude": 77.6095
+    }
+  ],
   "products": [
     {
       "id": "denim-tote",
