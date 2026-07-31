@@ -104,14 +104,22 @@ async function derivePassword(password, salt) {
 }
 
 async function hashPassword(password) {
-  const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
-  const digest = await derivePassword(password, salt);
-  return `pbkdf2$${bytesToHex(salt)}$${bytesToHex(digest)}`;
+  // Run the deliberately expensive password hash in Neon instead of spending
+  // the Cloudflare Worker's small CPU allowance on PBKDF2.
+  const rows = await sql`SELECT crypt(${password}, gen_salt('bf', 11)) AS password_hash`;
+  if (!rows.length || !rows[0].password_hash) throw new Error("Password hashing failed");
+  return rows[0].password_hash;
 }
 
 async function verifyPassword(password, stored) {
   try {
     const [kind, salt, expectedHex] = String(stored).split("$");
+    if (String(stored).startsWith("$2")) {
+      const rows = await sql`SELECT crypt(${password}, ${stored}) = ${stored} AS matches`;
+      return Boolean(rows.length && rows[0].matches);
+    }
+    // Continue accepting existing PBKDF2 records so deployed installations
+    // can migrate naturally the next time the administrator changes password.
     if (kind !== "pbkdf2" || !salt || !expectedHex) return false;
     const actual = await derivePassword(password, hexToBytes(salt));
     const expected = hexToBytes(expectedHex);
@@ -213,6 +221,7 @@ async function ensureSchema() {
   if (!sql) throw new Error("DATABASE_URL is not configured");
   if (!schemaReady) {
     schemaReady = (async () => {
+      await sql`CREATE EXTENSION IF NOT EXISTS pgcrypto`;
       await sql`
         CREATE TABLE IF NOT EXISTS admin_settings (
           id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
