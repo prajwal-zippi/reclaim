@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Reclaim Era website with Cloudflare Pages Functions and Neon content management",
   "scripts": {
-    "dev": "wrangler pages dev website",
+    "dev": "wrangler pages dev website --compatibility-date=2026-07-31 --compatibility-flag=nodejs_compat",
     "deploy:cloudflare": "wrangler pages deploy website"
   },
   "engines": {
