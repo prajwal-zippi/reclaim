@@ -48,12 +48,14 @@
   .pw-checks{display:flex;gap:8px 14px;flex-wrap:wrap;margin:14px 0 18px}
   .pw-checks li{font-size:.8rem;font-weight:600;color:var(--ink-soft);padding:5px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper)}
   .pw-checks li.ok{color:var(--green-deep);border-color:var(--green);background:var(--green-tint)}
+  .impact-editor{grid-template-columns:92px 1fr}
+  .metric-number{width:76px;height:76px;border-radius:20px;background:var(--green-tint);color:var(--green-deep);display:grid;place-items:center;font-family:var(--font-display);font-size:1.3rem;font-weight:800}
   .gate{position:fixed;inset:0;z-index:300;background:var(--cream);display:grid;place-items:center;padding:24px}
   .gate .form-card{max-width:420px;width:100%;text-align:center}
   .gate .wordmark{justify-content:center;font-size:1.6rem;margin-bottom:8px}
   #previewGrid{pointer-events:none}
   @media(max-width:700px){
-    .prod-editor{grid-template-columns:1fr}
+    .prod-editor,.impact-editor{grid-template-columns:1fr}
     .prod-thumb{width:96px;height:96px}
     .pe-fields{grid-template-columns:1fr}
     .adm-grid-2,.adm-grid-3{grid-template-columns:1fr}
@@ -108,13 +110,9 @@
   </section>
 
   <section class="adm-section">
-    <h2>Impact numbers</h2>
-    <p class="sub">Shown in the circles animation on the home page. Keep them short, like "22K+" or "13".</p>
-    <div class="adm-grid-3">
-      <div class="field"><label>Items diverted</label><input id="statItems" type="text"></div>
-      <div class="field"><label>Livelihoods created</label><input id="statLivelihoods" type="text"></div>
-      <div class="field"><label>Schools reached</label><input id="statSchools" type="text"></div>
-    </div>
+    <h2>Impact numbers &amp; descriptions</h2>
+    <p class="sub">Edit all nine impact cards. The first three numbers also update the matching home-page animation values everywhere they appear.</p>
+    <div id="impactMetricList"></div>
   </section>
 
   <section class="adm-section">
@@ -318,6 +316,7 @@
 
   var listEl = document.getElementById("productList");
   var galEl = document.getElementById("galleryList");
+  var impactMetricEl = document.getElementById("impactMetricList");
   var previewEl = document.getElementById("previewGrid");
   var statusEl = document.getElementById("statusText");
   var publishBtn = document.getElementById("publishBtn");
@@ -385,6 +384,9 @@
   function seedFrom(src) {
     state.products = src && src.products ? copy(src.products) : [];
     state.stats = src && src.stats ? copy(src.stats) : {};
+    state.impactMetrics = src && Array.isArray(src.impactMetrics)
+      ? copy(src.impactMetrics)
+      : copy((window.RE_DATA || {}).impactMetrics || []);
     state.phone = (src && src.phone) || "";
     state.gallery = src && src.gallery ? copy(src.gallery) : (window.RE_GALLERY ? copy(window.RE_GALLERY) : []);
     state.seller = src && src.seller ? copy(src.seller) : copy((window.RE_DATA || {}).seller || {});
@@ -411,7 +413,7 @@
 
   function renderPreview() { R.renderInto(previewEl, state.products, { variant: "full" }); }
 
-  function renderAll() { renderEditors(); renderGalleryEditors(); syncInputs(); renderPreview(); }
+  function renderAll() { renderEditors(); renderImpactEditors(); renderGalleryEditors(); syncInputs(); renderPreview(); }
 
   /* load the LIVE content from Neon (fallback to the static files) */
   function loadLive() {
@@ -516,6 +518,29 @@
     listEl.lastElementChild && listEl.lastElementChild.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
+  /* ------- impact metric editors ------- */
+  function renderImpactEditors() {
+    impactMetricEl.innerHTML = state.impactMetrics.map(function (metric, i) {
+      return '<div class="prod-editor impact-editor"><div class="metric-number">' + R.esc(metric.value || "—") + '</div>'
+        + '<div class="pe-fields">'
+        + field("Number / value", metric.value, "upMetricValue", i)
+        + field("Description", metric.description, "upMetricDescription", i, "full")
+        + '</div></div>';
+    }).join("");
+  }
+  window.upMetricValue = function (i, value) {
+    var metric = state.impactMetrics[i];
+    metric.value = value;
+    if (metric.id === "items" || metric.id === "livelihoods" || metric.id === "schools") {
+      state.stats[metric.id] = value;
+    }
+    save();
+  };
+  window.upMetricDescription = function (i, value) {
+    state.impactMetrics[i].description = value;
+    save();
+  };
+
   /* ------- gallery editors ------- */
   function galField(label, value, fn, idx, extra) {
     return '<div class="field ' + (extra || "") + '"><label>' + label + "</label>" +
@@ -564,14 +589,8 @@
   function bindInput(id, set) {
     document.getElementById(id).addEventListener("input", function () { set(this.value); save(); });
   }
-  bindInput("statItems", function (v) { state.stats.items = v; });
-  bindInput("statLivelihoods", function (v) { state.stats.livelihoods = v; });
-  bindInput("statSchools", function (v) { state.stats.schools = v; });
   bindInput("sitePhone", function (v) { state.phone = v; });
   function syncInputs() {
-    document.getElementById("statItems").value = state.stats.items || "";
-    document.getElementById("statLivelihoods").value = state.stats.livelihoods || "";
-    document.getElementById("statSchools").value = state.stats.schools || "";
     document.getElementById("sitePhone").value = state.phone || "";
   }
 

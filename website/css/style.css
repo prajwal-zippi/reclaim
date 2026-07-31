@@ -583,9 +583,11 @@ h1,h2,h3,.display{font-family:var(--font-display);font-weight:700;line-height:1.
 .impact-now .section-head h2,.impact-now .section-head p{color:#fff}
 .impact-now .section-head p:last-child{opacity:.72}
 .impact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.impact-card{display:flex;flex-direction:column;gap:8px;min-height:150px;padding:28px;border-radius:var(--radius);background:var(--paper);border:1px solid var(--line);color:var(--ink)}
+.impact-card{display:flex;flex-direction:column;gap:8px;min-height:150px;padding:28px;padding-right:82px;border-radius:var(--radius);background:var(--paper);border:1px solid var(--line);color:var(--ink);position:relative}
 .impact-card b{font-family:var(--font-display);font-size:clamp(1.8rem,3vw,2.6rem);line-height:1;color:var(--green-deep)}
 .impact-card span{font-size:.9rem;line-height:1.55;color:var(--ink-soft)}
+.impact-card .impact-icon{position:absolute;right:22px;top:22px;width:44px;height:44px;border-radius:14px;background:var(--green-tint);color:var(--green-deep);display:grid;place-items:center}
+.impact-card .impact-icon svg{width:23px;height:23px}
 .impact-grid-compact{max-width:1050px;margin:auto}
 .partner-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 .partner-card{min-height:180px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;font-weight:700;font-size:.84rem;color:var(--ink-soft)}

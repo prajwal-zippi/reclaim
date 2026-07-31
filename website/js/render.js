@@ -24,6 +24,17 @@
   };
   var HEART =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12.6 12 20l-7.5-7.4a5 5 0 1 1 7.5-6.6 5 5 0 1 1 7.5 6.6Z"/></svg>';
+  var IMPACT_ICONS = {
+    recycle: '<path d="m8 7 3-4 3 4M11 3v7M17 10l4 2-2 4M21 12l-6 3M9 19l-4-1 1-4M5 18l4-6"/>',
+    livelihood: '<circle cx="12" cy="7" r="3"/><path d="M5 21c.5-5 3-8 7-8s6.5 3 7 8M18 4v4M16 6h4"/>',
+    school: '<path d="m3 10 9-6 9 6-9 6Z"/><path d="M7 13v5c3 2 7 2 10 0v-5M21 10v6"/>',
+    leaf: '<path d="M5 21c1-10 6-16 15-17 0 11-5 16-12 16"/><path d="M5 21c3-7 7-10 11-12"/>',
+    people: '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.3"/><path d="M3 21c.4-5 2.5-8 6-8s5.6 3 6 8M15 15c3 0 5 2 5.5 6"/>',
+    bag: '<path d="M6 8h12l2 13H4Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+    bicycle: '<circle cx="6" cy="17" r="4"/><circle cx="18" cy="17" r="4"/><path d="m6 17 4-8 4 8h-8M10 9h4l4 8M9 6h3"/>',
+    run: '<circle cx="15" cy="4" r="2"/><path d="m12 8 3 2 3 4M12 8l-3 5 4 2-3 6M13 15l4 6"/>',
+    book: '<path d="M12 6c-2-1.5-4.5-2-8-2v14c3.5 0 6 .5 8 2 2-1.5 4.5-2 8-2V4c-3.5 0-6 .5-8 2Z"/><path d="M12 6v14"/>'
+  };
 
   function esc(s) {
     return String(s == null ? "" : s)
@@ -170,6 +181,22 @@
     }).join("");
   }
 
+  function renderImpactMetrics(data) {
+    var root = document.querySelector('[data-render="impact-metrics"]');
+    if (!root) return;
+    var metrics = Array.isArray(data.impactMetrics) ? data.impactMetrics : [];
+    var delays = ["", " reveal-d1", " reveal-d2"];
+    root.innerHTML = metrics.map(function (metric, index) {
+      var icon = IMPACT_ICONS[metric.icon] || IMPACT_ICONS.recycle;
+      return '<article class="impact-card reveal' + delays[index % 3] + '">'
+        + '<span class="impact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + icon + '</svg></span>'
+        + '<b>' + esc(metric.value) + '</b><span>' + esc(metric.description) + '</span></article>';
+    }).join("");
+    window.requestAnimationFrame(function () {
+      root.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("in"); });
+    });
+  }
+
   var branchMap = null;
   function renderBranches(data) {
     var list = document.querySelector('[data-render="branches"]');
@@ -222,8 +249,11 @@
         reveal: true
       });
     });
+    var metricValues = {};
+    (data.impactMetrics || []).forEach(function (metric) { if (metric && metric.id) metricValues[metric.id] = metric.value; });
     document.querySelectorAll("[data-stat]").forEach(function (el) {
-      var v = (data.stats || {})[el.getAttribute("data-stat")];
+      var key = el.getAttribute("data-stat");
+      var v = metricValues[key] || (data.stats || {})[key];
       if (v) el.textContent = v;
     });
     if (data.phone) {
@@ -238,6 +268,7 @@
     renderSeller(data);
     renderEducation(data);
     renderBranches(data);
+    renderImpactMetrics(data);
   }
 
   /* ---------- resolve: static baseline, then published live content ---------- */
@@ -257,14 +288,15 @@
         seller: live.seller || staticData.seller,
         team: live.team || staticData.team,
         educationArticles: live.educationArticles || staticData.educationArticles,
-        branches: live.branches || staticData.branches
+        branches: live.branches || staticData.branches,
+        impactMetrics: live.impactMetrics || staticData.impactMetrics
       },
       live.gallery || staticGallery
     );
   }
 
   function cacheAndApply(live) {
-    if (!live || !(live.products || live.stats || live.phone || live.gallery || live.team || live.seller || live.educationArticles || live.branches)) return;
+    if (!live || !(live.products || live.stats || live.phone || live.gallery || live.team || live.seller || live.educationArticles || live.branches || live.impactMetrics)) return;
     applyLive(live);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(live)); } catch (e) {}
   }
@@ -277,7 +309,7 @@
     })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (live) {
-        if (live && (live.products || live.stats || live.phone || live.gallery || live.team || live.seller || live.educationArticles || live.branches)) {
+        if (live && (live.products || live.stats || live.phone || live.gallery || live.team || live.seller || live.educationArticles || live.branches || live.impactMetrics)) {
           cacheAndApply(live);
         } else {
           try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
@@ -293,7 +325,7 @@
     // instant paint from a cached copy of the live content (fast repeat visits)
     try {
       var cached = JSON.parse(localStorage.getItem(CACHE_KEY));
-      if (cached && (cached.products || cached.stats || cached.phone || cached.gallery || cached.team || cached.seller || cached.educationArticles || cached.branches)) applyLive(cached);
+      if (cached && (cached.products || cached.stats || cached.phone || cached.gallery || cached.team || cached.seller || cached.educationArticles || cached.branches || cached.impactMetrics)) applyLive(cached);
     } catch (e) {}
     // Revalidate now, whenever the tab is revisited, and once per minute. An
     // admin save also pushes the same content instantly through BroadcastChannel

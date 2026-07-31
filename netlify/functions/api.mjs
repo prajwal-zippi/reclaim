@@ -235,7 +235,8 @@ function validateContent(content) {
   );
   const education = Array.isArray(content.educationArticles) ? content.educationArticles : [];
   const branches = Array.isArray(content.branches) ? content.branches : [];
-  if (teamMembers.length > 200 || education.length > 200 || branches.length > 100) {
+  const impactMetrics = Array.isArray(content.impactMetrics) ? content.impactMetrics : [];
+  if (teamMembers.length > 200 || education.length > 200 || branches.length > 100 || impactMetrics.length > 30) {
     return "Too many team members, education entries, or branches.";
   }
   const unsafeImage = [...content.products, ...content.gallery, ...teamMembers, ...education].some(

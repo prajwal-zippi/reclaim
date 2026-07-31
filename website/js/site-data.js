@@ -9,8 +9,19 @@ window.RE_DATA = {
   "stats": {
     "items": "22K+",
     "livelihoods": "13",
-    "schools": "11"
+    "schools": "3"
   },
+  "impactMetrics": [
+    {"id":"items","value":"22K+","description":"reusable and household items diverted and donated","icon":"recycle"},
+    {"id":"livelihoods","value":"13","description":"entrepreneurship and green-job training programmes for women","icon":"livelihood"},
+    {"id":"schools","value":"3","description":"government schools reached through environmental education","icon":"school"},
+    {"id":"systems","value":"1","description":"government-aided school with biogas and compost systems installed","icon":"leaf"},
+    {"id":"volunteers","value":"5","description":"waste-management corporate volunteer engagement programmes","icon":"people"},
+    {"id":"bags","value":"600","description":"upcycled and new school bags donated","icon":"bag"},
+    {"id":"bicycles","value":"83","description":"bicycles donated to government-school students","icon":"bicycle"},
+    {"id":"marathons","value":"3","description":"zero-waste awareness marathons conducted","icon":"run"},
+    {"id":"notebooks","value":"2,000","description":"reusable and new notebooks donated","icon":"book"}
+  ],
   "seller": {
     "name": "Reclaim Era Upcycle Shop",
     "description": "Shop directly from Reclaim Era and support education and green livelihoods.",
