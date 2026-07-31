@@ -19,6 +19,8 @@ backend/venv/
 backend/.venv/
 backend/__pycache__/
 node_modules/
+.cloudflare-test/
+.wrangler/
 
 # Environment variables
 .env

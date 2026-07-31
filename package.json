@@ -2,11 +2,18 @@
   "name": "reclaim-era",
   "private": true,
   "version": "1.0.0",
-  "description": "Reclaim Era static website with Netlify Functions and Neon content management",
+  "description": "Reclaim Era website with Cloudflare Pages Functions and Neon content management",
+  "scripts": {
+    "dev": "wrangler pages dev website",
+    "deploy:cloudflare": "wrangler pages deploy website"
+  },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1"
+  },
+  "devDependencies": {
+    "wrangler": "^4.27.0"
   }
 }

@@ -120,6 +120,7 @@ async function tokenValid(token) {
 function requestIp(event) {
   const headers = event.headers || {};
   return String(
+    headers["cf-connecting-ip"] ||
     headers["x-nf-client-connection-ip"] ||
     headers["client-ip"] ||
     headers["x-forwarded-for"] ||
