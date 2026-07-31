@@ -1,6 +1,5 @@
 import {
   createHmac,
-  pbkdf2Sync,
   randomBytes,
   timingSafeEqual,
 } from "node:crypto";
@@ -68,18 +67,43 @@ function parseBody(event) {
   }
 }
 
-function hashPassword(password) {
-  const salt = randomBytes(16).toString("hex");
-  const digest = pbkdf2Sync(password, Buffer.from(salt, "hex"), PBKDF2_ITERATIONS, 32, "sha256");
-  return `pbkdf2$${salt}$${digest.toString("hex")}`;
+function bytesToHex(bytes) {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-function verifyPassword(password, stored) {
+function hexToBytes(hex) {
+  if (!/^[a-f0-9]+$/i.test(hex) || hex.length % 2) throw new Error("Invalid hex");
+  return Uint8Array.from(hex.match(/.{2}/g), (pair) => Number.parseInt(pair, 16));
+}
+
+async function derivePassword(password, salt) {
+  const key = await globalThis.crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const bits = await globalThis.crypto.subtle.deriveBits(
+    { name: "PBKDF2", hash: "SHA-256", salt, iterations: PBKDF2_ITERATIONS },
+    key,
+    256
+  );
+  return new Uint8Array(bits);
+}
+
+async function hashPassword(password) {
+  const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  const digest = await derivePassword(password, salt);
+  return `pbkdf2$${bytesToHex(salt)}$${bytesToHex(digest)}`;
+}
+
+async function verifyPassword(password, stored) {
   try {
     const [kind, salt, expectedHex] = String(stored).split("$");
     if (kind !== "pbkdf2" || !salt || !expectedHex) return false;
-    const actual = pbkdf2Sync(password, Buffer.from(salt, "hex"), PBKDF2_ITERATIONS, 32, "sha256");
-    const expected = Buffer.from(expectedHex, "hex");
+    const actual = await derivePassword(password, hexToBytes(salt));
+    const expected = hexToBytes(expectedHex);
     return actual.length === expected.length && timingSafeEqual(actual, expected);
   } catch {
     return false;
@@ -316,12 +340,12 @@ async function login(body, event) {
     }
     await sql`
       INSERT INTO admin_settings (id, username, password_hash)
-      VALUES (1, ${INITIAL_USERNAME}, ${hashPassword(INITIAL_PASSWORD)})
+      VALUES (1, ${INITIAL_USERNAME}, ${await hashPassword(INITIAL_PASSWORD)})
       ON CONFLICT (id) DO NOTHING
     `;
     rows = await sql`SELECT username, password_hash FROM admin_settings WHERE id = 1`;
   }
-  if (!rows.length || username !== rows[0].username || !verifyPassword(password, rows[0].password_hash)) {
+  if (!rows.length || username !== rows[0].username || !(await verifyPassword(password, rows[0].password_hash))) {
     await sql`
       INSERT INTO admin_login_attempts (client_hash, failures, window_started, blocked_until)
       VALUES (${ipHash}, 1, now(), NULL)
@@ -367,10 +391,10 @@ async function changePassword(body) {
     return json(400, { ok: false, error: "Username must be 3-40 letters, numbers, dots, dashes, or underscores." });
   }
   const rows = await sql`SELECT username, password_hash FROM admin_settings WHERE id = 1`;
-  if (!rows.length || !verifyPassword(String(body.current_password || ""), rows[0].password_hash)) {
+  if (!rows.length || !(await verifyPassword(String(body.current_password || ""), rows[0].password_hash))) {
     return json(401, { ok: false, error: "Current password is wrong." });
   }
-  const newHash = hashPassword(body.new_password);
+  const newHash = await hashPassword(body.new_password);
   await sql`
     UPDATE admin_settings
     SET username = ${username}, password_hash = ${newHash}, updated_at = now()
