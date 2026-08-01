@@ -14,6 +14,7 @@
   body{padding-bottom:110px}
   .adm-header{position:sticky;top:0;z-index:50;background:var(--cream);border-bottom:1px solid var(--line);padding:16px 0}
   .adm-header .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .adm-header .wrap > span:last-child{display:flex;gap:8px;flex-wrap:wrap;max-width:100%}
   .adm-title{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
   .adm-badge{background:var(--ink);color:var(--cream);font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;border-radius:999px}
   .adm-section{margin-top:44px}
@@ -55,6 +56,9 @@
   .gate .wordmark{justify-content:center;font-size:1.6rem;margin-bottom:8px}
   #previewGrid{pointer-events:none}
   @media(max-width:700px){
+    body{padding-bottom:150px;overflow-x:hidden}
+    main.wrap,.prod-editor,.pe-fields,.field{min-width:0}
+    .field input,.field textarea,.field select{width:100%;min-width:0}
     .prod-editor,.impact-editor{grid-template-columns:1fr}
     .prod-thumb{width:96px;height:96px}
     .pe-fields{grid-template-columns:1fr}
@@ -312,7 +316,10 @@
 
   /* ------- state ------- */
   var R = window.RE_RENDER;
-  var state = { products: [], stats: {}, phone: "", gallery: [] };
+  var state = {
+    products: [], stats: {}, impactMetrics: [], phone: "", gallery: [],
+    seller: {}, team: {}, educationArticles: [], branches: []
+  };
 
   var listEl = document.getElementById("productList");
   var galEl = document.getElementById("galleryList");
@@ -520,13 +527,14 @@
 
   /* ------- impact metric editors ------- */
   function renderImpactEditors() {
-    impactMetricEl.innerHTML = state.impactMetrics.map(function (metric, i) {
+    var metrics = Array.isArray(state.impactMetrics) ? state.impactMetrics : [];
+    impactMetricEl.innerHTML = metrics.map(function (metric, i) {
       return '<div class="prod-editor impact-editor"><div class="metric-number">' + R.esc(metric.value || "—") + '</div>'
         + '<div class="pe-fields">'
         + field("Number / value", metric.value, "upMetricValue", i)
         + field("Description", metric.description, "upMetricDescription", i, "full")
         + '</div></div>';
-    }).join("");
+    }).join("") || '<p style="color:var(--ink-soft);margin-bottom:16px">No impact metrics are available yet.</p>';
   }
   window.upMetricValue = function (i, value) {
     var metric = state.impactMetrics[i];
@@ -680,6 +688,7 @@
     if (dirty) { e.preventDefault(); e.returnValue = ""; }
   });
 
+  seedFrom(window.RE_DATA || {});
   renderAll();  // initial static render behind the gate; loadLive() refreshes on entry
 })();
 </script>

@@ -32,6 +32,9 @@
     });
   });
 
+  /* Do not expose dead social links until the client supplies real profiles. */
+  document.querySelectorAll('.social-row a[href="#"]').forEach((link) => link.remove());
+
   /* reveal on scroll */
   const revealEls = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window && revealEls.length) {
@@ -99,6 +102,18 @@
   document.querySelectorAll('form[action*="formsubmit.co"]').forEach((form) => {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (form.classList.contains("newsletter")) {
+        var subject = form.querySelector('input[name="_subject"]');
+        if (subject) subject.value = "New subscriber — events, volunteering and impact reports";
+        var interests = form.querySelector('input[name="interests"]');
+        if (!interests) {
+          interests = document.createElement("input");
+          interests.type = "hidden";
+          interests.name = "interests";
+          form.appendChild(interests);
+        }
+        interests.value = "Future events; volunteering opportunities; news and impact reports";
+      }
       const btn = form.querySelector('[type="submit"]');
       const ok = form.querySelector(".form-success");
       const err = form.querySelector(".form-error");
@@ -122,7 +137,7 @@
             ok.scrollIntoView({ behavior: "smooth", block: "nearest" });
           }
           if (form.classList.contains("newsletter")) {
-            reToast("You’re subscribed! Thank you for joining Reclaim Era updates.");
+            reToast("You’re subscribed for future events, volunteering opportunities and impact reports.");
           }
         } else {
           let msg = "";

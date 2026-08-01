@@ -175,8 +175,9 @@ FOOTER = f'''
     <div class="wrap">
       <h3>Get monthly <em>impact reports</em> &amp; event invites.</h3>
       <form class="newsletter" action="https://formsubmit.co/reclaimera@gmail.com" method="POST">
-        <input type="hidden" name="_subject" value="New Reclaim Era newsletter subscription">
+        <input type="hidden" name="_subject" value="New subscriber — events, volunteering and impact reports">
         <input type="hidden" name="form_type" value="Newsletter subscription">
+        <input type="hidden" name="interests" value="Future events; volunteering opportunities; news and impact reports">
         <input type="hidden" name="_captcha" value="false">
         <input type="hidden" name="_template" value="table">
         <input type="text" name="_honey" style="display:none" tabindex="-1" aria-hidden="true">
@@ -197,8 +198,6 @@ FOOTER = f'''
         </div>
         <div class="social-row">
           <a href="https://www.instagram.com/reclaimera.official" target="_blank" rel="noopener" aria-label="Instagram">{I["ig"]}</a>
-          <a href="#" aria-label="Facebook">{I["fb"]}</a>
-          <a href="#" aria-label="LinkedIn">{I["li"]}</a>
         </div>
       </div>
       <div>
