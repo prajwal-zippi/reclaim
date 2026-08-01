@@ -1226,13 +1226,17 @@ CAMPAIGN_JS = r"""
   payLink.addEventListener("click", function (e) {
     hideError();
     if (!validateStep1() || !validateStep2()) { e.preventDefault(); setStep(!validateStep1() ? 1 : 2); return; }
-    // capture the application by email (pure static, no backend)
+    // Notify the team whenever the visitor proceeds to PayU. This records an
+    // attempt only; it deliberately does not claim that payment succeeded.
     try {
       fetch(FS_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({
-          _subject: "New campaign application (reclaimera.in)",
+          _subject: "Campaign payment attempted — verification required",
+          payment_status: "PAYMENT ATTEMPTED — verify in PayU before confirming booking",
+          payment_page: payLink.href,
+          attempted_at: new Date().toISOString(),
           location: state.location_type + (state.location_other ? " - " + state.location_other : ""),
           institution: state.institution_name,
           address: state.address,
@@ -1333,9 +1337,9 @@ campaign_body = page_hero(
 
         <div class="success-panel" id="successPanel" style="display:none">
           <div class="big-tick">{I["check"]}</div>
-          <h3>Application received!</h3>
-          <p>Complete the minimum \u20B9500 payment in the PayU tab that just opened. <span id="successNote"></span></p>
-          <p>Once we see your payment, our team calls your coordinator within 48 hours to fix the campaign date.</p>
+          <h3>Payment attempt recorded</h3>
+          <p>Your campaign details have been emailed to our team and the PayU payment page has opened. <span id="successNote"></span></p>
+          <p><b>Your campaign is not booked yet.</b> After the team verifies a successful payment of at least \u20B9500, they will call your coordinator within 48 hours to confirm the campaign date.</p>
         </div>
       </div>
     </div>
