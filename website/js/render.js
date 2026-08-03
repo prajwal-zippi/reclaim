@@ -160,12 +160,35 @@
   function renderSeller(data) {
     var root = document.querySelector('[data-render="seller"]');
     if (!root) return;
-    var seller = data.seller || {};
-    var href = safeHttps(seller.profileUrl);
-    root.innerHTML = '<div><p class="eyebrow">Seller profile</p><h3>' + esc(seller.name || "Reclaim Era Upcycle Shop")
-      + '</h3><p>' + esc(seller.description || "Shop directly from Reclaim Era and support education and green livelihoods.") + "</p></div>"
-      + (href ? '<a class="btn btn-green" href="' + esc(href) + '" target="_blank" rel="noopener noreferrer">'
-        + esc(seller.linkLabel || "Visit seller profile") + " ↗</a>" : '<a class="btn btn-outline" href="contact.html">Contact the seller</a>');
+    var sellers = Array.isArray(data.sellers) ? data.sellers.slice() : [];
+    if (!sellers.length && data.seller) sellers = [{id:"legacy-seller",name:data.seller.name,biography:data.seller.description,websiteUrl:data.seller.profileUrl,visible:true,order:0}];
+    sellers = sellers.filter(function(s){return s && s.visible !== false;}).sort(function(a,b){return Number(a.order||0)-Number(b.order||0);});
+    if (!sellers.length) { root.innerHTML = '<p class="seller-empty">Seller profiles will be published here soon.</p>'; return; }
+    var badges = Array.isArray(data.badges) ? data.badges : [];
+    root.innerHTML = '<div class="seller-grid">' + sellers.map(function(seller){
+      var href=safeHttps(seller.websiteUrl||seller.profileUrl), photo=seller.imageUrl?'<img src="'+esc(resolveImg(seller.imageUrl))+'" alt="'+esc(seller.name)+'" loading="lazy">':'<span>'+esc(initials(seller.name))+'</span>';
+      var sellerBadges=(seller.badgeIds||[]).map(function(id){return badges.find(function(b){return b.id===id&&b.visible!==false;});}).filter(Boolean);
+      var socials=Object.keys(seller.socialLinks||{}).map(function(name){var url=safeHttps(seller.socialLinks[name]);return url?'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(name.charAt(0).toUpperCase()+name.slice(1))+' ↗</a>':'';}).join('');
+      return '<article class="seller-card"><div class="seller-photo">'+photo+'</div><div><p class="eyebrow">'+esc(seller.role||"Seller profile")+'</p><h3>'+esc(seller.name)+'</h3><p>'+esc(seller.biography||seller.description||"")+'</p>'
+        +(sellerBadges.length?'<div class="seller-badges">'+sellerBadges.map(function(b){return '<span>'+esc(b.title)+'</span>';}).join('')+'</div>':'')
+        +'<div class="seller-links">'+(seller.contactEmail?'<a href="mailto:'+esc(seller.contactEmail)+'">Email</a>':'')+(seller.contactPhone?'<a href="tel:'+esc(String(seller.contactPhone).replace(/[^+\d]/g,""))+'">Call</a>':'')+(href?'<a href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">Website ↗</a>':'')+socials+'</div></div></article>';
+    }).join('') + '</div>';
+  }
+
+  function renderBadges(data) {
+    var root=document.querySelector('[data-render="badges"]'); if(!root)return;
+    var badges=(Array.isArray(data.badges)?data.badges:[]).filter(function(b){return b&&b.visible!==false;}).sort(function(a,b){return Number(a.order||0)-Number(b.order||0);});
+    var section=root.closest('[data-badge-section]'); if(section)section.hidden=!badges.length;
+    root.innerHTML=badges.map(function(b){var href=safeHttps(b.linkUrl);var visual=b.imageUrl?'<img src="'+esc(resolveImg(b.imageUrl))+'" alt="" loading="lazy">':'<span aria-hidden="true">✦</span>';var body='<div class="badge-visual">'+visual+'</div><div><h3>'+esc(b.title)+'</h3>'+(b.description?'<p>'+esc(b.description)+'</p>':'')+'</div>';return href?'<a class="badge-card" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+body+'</a>':'<article class="badge-card">'+body+'</article>';}).join('');
+  }
+
+  function renderEditableIcons(data) {
+    var icons=Array.isArray(data.icons)?data.icons:[];
+    var targets={"waste-management":'a[href="waste-management.html"] .d-ic, a[href="waste-management.html"].init-card .icon-chip',"environmental-education":'a[href="education.html"] .d-ic, a[href="education.html"].init-card .icon-chip',"empowher":'a[href="empowher.html"] .d-ic, a[href="empowher.html"].init-card .icon-chip',"csr-partnerships":'a[href="csr-partnerships.html"] .d-ic, a[href="csr-partnerships.html"].init-card .icon-chip'};
+    icons.filter(function(icon){return icon&&icon.visible!==false&&icon.imageUrl;}).forEach(function(icon){
+      var selector=targets[icon.id]||('[data-icon-id="'+String(icon.id).replace(/[^A-Za-z0-9_-]/g,"")+'"]');
+      document.querySelectorAll(selector).forEach(function(el){el.innerHTML='<img src="'+esc(resolveImg(icon.imageUrl))+'" alt="" loading="lazy">';el.classList.add("custom-icon");});
+    });
   }
 
   function renderEducation(data) {
@@ -190,9 +213,10 @@
     var metrics = Array.isArray(data.impactMetrics) ? data.impactMetrics : [];
     var delays = ["", " reveal-d1", " reveal-d2"];
     root.innerHTML = metrics.map(function (metric, index) {
+      var custom=(Array.isArray(data.icons)?data.icons:[]).find(function(item){return item&&item.id===metric.icon&&item.visible!==false&&item.imageUrl;});
       var icon = IMPACT_ICONS[metric.icon] || IMPACT_ICONS.recycle;
       return '<article class="impact-card reveal' + delays[index % 3] + '">'
-        + '<span class="impact-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + icon + '</svg></span>'
+        + '<span class="impact-icon" aria-hidden="true">' + (custom?'<img src="'+esc(resolveImg(custom.imageUrl))+'" alt="">':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + icon + '</svg>') + '</span>'
         + '<b>' + esc(metric.value) + '</b><span>' + esc(metric.description) + '</span></article>';
     }).join("");
     window.requestAnimationFrame(function () {
@@ -269,6 +293,8 @@
     if (grid) renderGallery(grid, gallery);
     renderTeam(data);
     renderSeller(data);
+    renderBadges(data);
+    renderEditableIcons(data);
     renderEducation(data);
     renderBranches(data);
     renderImpactMetrics(data);
@@ -289,6 +315,9 @@
         stats: live.stats || staticData.stats,
         phone: live.phone || staticData.phone,
         seller: live.seller || staticData.seller,
+        sellers: live.sellers || staticData.sellers,
+        badges: live.badges || staticData.badges,
+        icons: live.icons || staticData.icons,
         team: live.team || staticData.team,
         educationArticles: live.educationArticles || staticData.educationArticles,
         branches: live.branches || staticData.branches,
@@ -299,7 +328,7 @@
   }
 
   function cacheAndApply(live) {
-    if (!live || !(live.products || live.stats || live.phone || live.gallery || live.team || live.seller || live.educationArticles || live.branches || live.impactMetrics)) return;
+    if (!live || !(live.products || live.stats || live.phone || live.gallery || live.team || live.seller || live.sellers || live.badges || live.icons || live.educationArticles || live.branches || live.impactMetrics)) return;
     applyLive(live);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(live)); } catch (e) {}
   }
@@ -312,7 +341,7 @@
     })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (live) {
-        if (live && (live.products || live.stats || live.phone || live.gallery || live.team || live.seller || live.educationArticles || live.branches || live.impactMetrics)) {
+        if (live && (live.products || live.stats || live.phone || live.gallery || live.team || live.seller || live.sellers || live.badges || live.icons || live.educationArticles || live.branches || live.impactMetrics)) {
           cacheAndApply(live);
         } else {
           try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
@@ -328,7 +357,7 @@
     // instant paint from a cached copy of the live content (fast repeat visits)
     try {
       var cached = JSON.parse(localStorage.getItem(CACHE_KEY));
-      if (cached && (cached.products || cached.stats || cached.phone || cached.gallery || cached.team || cached.seller || cached.educationArticles || cached.branches || cached.impactMetrics)) applyLive(cached);
+      if (cached && (cached.products || cached.stats || cached.phone || cached.gallery || cached.team || cached.seller || cached.sellers || cached.badges || cached.icons || cached.educationArticles || cached.branches || cached.impactMetrics)) applyLive(cached);
     } catch (e) {}
     // Revalidate now, whenever the tab is revisited, and once per minute. An
     // admin save also pushes the same content instantly through BroadcastChannel

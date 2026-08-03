@@ -170,10 +170,10 @@
   </div>
 </div>
 
-<script src="js/config.js?v=1785767400"></script>
-<script src="js/gallery-data.js?v=1785767400"></script>
-<script src="js/site-data.js?v=1785767400"></script>
-<script src="js/render.js?v=1785767400"></script>
+<script src="js/config.js?v=1785771000"></script>
+<script src="js/gallery-data.js?v=1785771000"></script>
+<script src="js/site-data.js?v=1785771000"></script>
+<script src="js/render.js?v=1785771000"></script>
 <script>
 (function () {
   "use strict";
@@ -319,7 +319,7 @@
   var R = window.RE_RENDER;
   var state = {
     products: [], stats: {}, impactMetrics: [], phone: "", gallery: [],
-    seller: {}, team: {}, educationArticles: [], branches: []
+    seller: {}, sellers: [], badges: [], icons: [], team: {}, educationArticles: [], branches: []
   };
 
   var listEl = document.getElementById("productList");
@@ -398,6 +398,9 @@
     state.phone = (src && src.phone) || "";
     state.gallery = src && src.gallery ? copy(src.gallery) : (window.RE_GALLERY ? copy(window.RE_GALLERY) : []);
     state.seller = src && src.seller ? copy(src.seller) : copy((window.RE_DATA || {}).seller || {});
+    state.sellers = src && Array.isArray(src.sellers) ? copy(src.sellers) : copy((window.RE_DATA || {}).sellers || []);
+    state.badges = src && Array.isArray(src.badges) ? copy(src.badges) : copy((window.RE_DATA || {}).badges || []);
+    state.icons = src && Array.isArray(src.icons) ? copy(src.icons) : copy((window.RE_DATA || {}).icons || []);
     state.team = src && src.team ? copy(src.team) : copy((window.RE_DATA || {}).team || {});
     state.educationArticles = src && src.educationArticles ? copy(src.educationArticles) : copy((window.RE_DATA || {}).educationArticles || []);
     state.branches = src && src.branches ? copy(src.branches) : copy((window.RE_DATA || {}).branches || []);
@@ -533,6 +536,7 @@
       return '<div class="prod-editor impact-editor"><div class="metric-number">' + R.esc(metric.value || "—") + '</div>'
         + '<div class="pe-fields">'
         + field("Number / value", metric.value, "upMetricValue", i)
+        + field("Icon ID", metric.icon, "upMetricIcon", i)
         + field("Description", metric.description, "upMetricDescription", i, "full")
         + '</div></div>';
     }).join("") || '<p style="color:var(--ink-soft);margin-bottom:16px">No impact metrics are available yet.</p>';
@@ -549,6 +553,7 @@
     state.impactMetrics[i].description = value;
     save();
   };
+  window.upMetricIcon = function (i, value) { state.impactMetrics[i].icon = value.trim(); save(); };
 
   /* ------- gallery editors ------- */
   function galField(label, value, fn, idx, extra) {

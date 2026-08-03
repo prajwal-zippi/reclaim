@@ -299,7 +299,13 @@ def get_content():
     """Public: the live shop/gallery/stats/phone content the site renders from."""
     with db() as conn:
         row = conn.execute("SELECT data FROM site_content WHERE id = 1").fetchone()
-    resp = jsonify(row[0] if row and row[0] else {})
+    content = row[0] if row and row[0] else {}
+    if not isinstance(content.get("icons"), list): content["icons"] = []
+    if not isinstance(content.get("badges"), list): content["badges"] = []
+    if not isinstance(content.get("sellers"), list):
+        old = content.get("seller") or {}
+        content["sellers"] = [{"id":"legacy-seller","name":old.get("name"),"role":"Official seller","biography":old.get("description", ""),"imageUrl":"","contactEmail":"","contactPhone":"","socialLinks":{},"websiteUrl":old.get("profileUrl", ""),"badgeIds":[],"order":0,"visible":True}] if old.get("name") else []
+    resp = jsonify(content)
     resp.headers["Cache-Control"] = "public, max-age=60"  # brief browser cache
     return resp
 
@@ -323,7 +329,7 @@ def upload_image():
     if len(raw) > MAX_IMAGE_BYTES:
         return jsonify({"ok": False, "error": "Image is too large (max 4 MB)."}), 400
 
-    img_id = secrets.token_hex(8) + (".jpg" if mime == "image/jpeg" else ".png")
+    img_id = secrets.token_hex(12) + (".jpg" if mime == "image/jpeg" else ".png")
     with db() as conn:
         conn.execute("INSERT INTO images (id, mime, data) VALUES (%s, %s, %s)", (img_id, mime, raw))
     return jsonify({"ok": True, "url": "/api/image/" + img_id})
@@ -352,6 +358,14 @@ def save_content():
     content = data.get("content")
     if not isinstance(content, dict):
         return jsonify({"ok": False, "error": "Invalid content."}), 400
+    for key, limit in (("icons", 200), ("badges", 500), ("sellers", 500)):
+        if not isinstance(content.get(key, []), list) or len(content.get(key, [])) > limit:
+            return jsonify({"ok": False, "error": f"Invalid or excessive {key}."}), 400
+    identifiers = [str(item.get("id", "")).strip() for key in ("icons", "badges", "sellers") for item in content.get(key, []) if isinstance(item, dict)]
+    if any(not value for value in identifiers) or len(identifiers) != len(set(identifiers)):
+        return jsonify({"ok": False, "error": "Icons, badges and sellers need unique IDs."}), 400
+    if any(not str(item.get("name", "")).strip() for item in content.get("sellers", []) if isinstance(item, dict)):
+        return jsonify({"ok": False, "error": "Every seller needs a name."}), 400
 
     with db() as conn:
         conn.execute(

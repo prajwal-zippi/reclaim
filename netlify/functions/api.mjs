@@ -297,10 +297,13 @@ function validateContent(content) {
   const education = Array.isArray(content.educationArticles) ? content.educationArticles : [];
   const branches = Array.isArray(content.branches) ? content.branches : [];
   const impactMetrics = Array.isArray(content.impactMetrics) ? content.impactMetrics : [];
-  if (teamMembers.length > 200 || education.length > 200 || branches.length > 100 || impactMetrics.length > 30) {
-    return "Too many team members, education entries, or branches.";
+  const icons = Array.isArray(content.icons) ? content.icons : [];
+  const badges = Array.isArray(content.badges) ? content.badges : [];
+  const sellers = Array.isArray(content.sellers) ? content.sellers : [];
+  if (teamMembers.length > 200 || education.length > 200 || branches.length > 100 || impactMetrics.length > 30 || icons.length > 200 || badges.length > 500 || sellers.length > 500) {
+    return "One or more content collections exceed the supported limit.";
   }
-  const unsafeImage = [...content.products, ...content.gallery, ...teamMembers, ...education].some(
+  const unsafeImage = [...content.products, ...content.gallery, ...teamMembers, ...education, ...icons, ...badges, ...sellers].some(
     (item) => item && !validImageUrl(item.imageUrl)
   );
   if (unsafeImage) return "Image URLs must use HTTPS or a secure uploaded image.";
@@ -308,10 +311,16 @@ function validateContent(content) {
     content.seller && content.seller.profileUrl,
     ...teamMembers.map((item) => item && item.profileUrl),
     ...education.map((item) => item && item.linkUrl),
+    ...badges.map((item) => item && item.linkUrl),
+    ...sellers.flatMap((item) => [item && item.websiteUrl, ...Object.values(item && item.socialLinks || {})]),
   ].filter(Boolean);
   if (externalLinks.some((value) => {
     try { return new URL(String(value)).protocol !== "https:"; } catch { return true; }
   })) return "External links must use HTTPS.";
+  const ids = [...icons, ...badges, ...sellers].map((item) => String(item && item.id || "").trim());
+  if (ids.some((id) => !id) || new Set(ids).size !== ids.length) return "Icons, badges and sellers need unique IDs.";
+  if (sellers.some((item) => !String(item && item.name || "").trim())) return "Every seller needs a name.";
+  if (sellers.some((item) => item.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(item.contactEmail)))) return "A seller email address is invalid.";
   if (branches.some((branch) => {
     const lat = Number(branch && branch.latitude);
     const lng = Number(branch && branch.longitude);
@@ -329,6 +338,11 @@ function normalizeContent(content) {
       price: String(product && product.price ? product.price : "").trim() || "Price on request",
     }));
   }
+  normalized.icons = Array.isArray(content.icons) ? content.icons : [];
+  normalized.badges = Array.isArray(content.badges) ? content.badges.map((item,index)=>({...item,order:Number.isFinite(Number(item.order))?Number(item.order):index,visible:item.visible!==false})) : [];
+  normalized.sellers = Array.isArray(content.sellers) ? content.sellers.map((item,index)=>({...item,socialLinks:item.socialLinks||{},badgeIds:Array.isArray(item.badgeIds)?item.badgeIds:[],order:Number.isFinite(Number(item.order))?Number(item.order):index,visible:item.visible!==false})) : [];
+  if (!normalized.sellers.length && content.seller && content.seller.name) normalized.sellers=[{id:"legacy-seller",name:content.seller.name,role:"Official seller",biography:content.seller.description||"",imageUrl:"",contactEmail:"",contactPhone:"",socialLinks:{},websiteUrl:content.seller.profileUrl||"",badgeIds:[],order:0,visible:true}];
+  if (normalized.sellers.length) normalized.seller={name:normalized.sellers[0].name,description:normalized.sellers[0].biography||"",profileUrl:normalized.sellers[0].websiteUrl||"",linkLabel:"Visit seller profile"};
   return normalized;
 }
 

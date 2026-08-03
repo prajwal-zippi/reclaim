@@ -22,6 +22,24 @@ window.RE_DATA = {
     {"id":"marathons","value":"3","description":"zero-waste awareness marathons conducted","icon":"run"},
     {"id":"notebooks","value":"2,000","description":"reusable and new notebooks donated","icon":"book"}
   ],
+  "icons": [],
+  "badges": [],
+  "sellers": [
+    {
+      "id": "reclaim-era-shop",
+      "name": "Reclaim Era Upcycle Shop",
+      "role": "Official seller",
+      "biography": "Shop directly from Reclaim Era and support education and green livelihoods.",
+      "imageUrl": "",
+      "contactEmail": "reclaimera@gmail.com",
+      "contactPhone": "+91 81520 20145",
+      "socialLinks": {},
+      "websiteUrl": "",
+      "badgeIds": [],
+      "order": 0,
+      "visible": true
+    }
+  ],
   "seller": {
     "name": "Reclaim Era Upcycle Shop",
     "description": "Shop directly from Reclaim Era and support education and green livelihoods.",
