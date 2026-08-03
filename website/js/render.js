@@ -47,7 +47,7 @@
   /* ---------- shop cards ---------- */
   function card(p, variant, revealClass) {
     var media = p.imageUrl
-      ? '<img src="' + esc(resolveImg(p.imageUrl)) + '" alt="' + esc(p.name) + '" loading="lazy">'
+      ? '<img src="' + esc(resolveImg(p.imageUrl)) + '" alt="' + esc(p.name) + '" loading="lazy" decoding="async">'
       : (ART[p.art] || ART.tote);
     var reveal = revealClass ? " " + revealClass : "";
     var inner =
@@ -61,8 +61,8 @@
     }
     return (
       '<div class="prod-card' + reveal + '">' + inner +
-      (p.desc ? '<p style="font-size:.84rem;color:var(--ink-soft);margin-top:8px">' + esc(p.desc) + "</p>" : "") +
-      '<a class="btn btn-ink btn-sm" style="margin-top:16px" href="contact.html">Order Inquiry</a>' +
+      (p.desc ? '<p class="prod-desc">' + esc(p.desc) + "</p>" : "") +
+      '<a class="btn btn-ink btn-sm prod-inquiry" href="contact.html">Enquire to order <span aria-hidden="true">↗</span></a>' +
       "</div></div>"
     );
   }
@@ -102,10 +102,13 @@
     grid.innerHTML = events.map(function (ev) {
       var src = resolveImg(ev.imageUrl);
       var media = ev.imageUrl
-        ? '<img src="' + esc(src) + '" alt="' + esc(ev.title) + '" loading="lazy">'
+        ? '<img src="' + esc(src) + '" alt="' + esc(ev.title) + '" loading="lazy" decoding="async">'
         : '<div class="gal-ph"><span>Photo coming soon</span></div>';
       var date = ev.date ? '<span class="gal-date">' + esc(ev.date) + "</span>" : "";
-      var attrs = ev.imageUrl ? ' has-img" data-full="' + esc(src) + '" data-title="' + esc(ev.title) + '"' : '"';
+      var attrs = ev.imageUrl
+        ? ' has-img" role="button" tabindex="0" aria-label="Open image: ' + esc(ev.title)
+          + '" data-full="' + esc(src) + '" data-title="' + esc(ev.title) + '"'
+        : '"';
       return '<article class="gal-card' + attrs + '>'
         + '<div class="gal-media">' + media + date + "</div>"
         + '<div class="gal-body"><h3>' + esc(ev.title) + "</h3>"
@@ -139,7 +142,7 @@
       var cards = members.map(function (member) {
         var href = safeHttps(member.profileUrl);
         var photo = member.imageUrl
-          ? '<img src="' + esc(resolveImg(member.imageUrl)) + '" alt="' + esc(member.name) + '" loading="lazy">'
+          ? '<img src="' + esc(resolveImg(member.imageUrl)) + '" alt="' + esc(member.name) + '" loading="lazy" decoding="async">'
           : '<span>' + esc(initials(member.name)) + "</span>";
         var body = '<div class="team-photo">' + photo + "</div><h4>" + esc(member.name) + "</h4>"
           + '<p class="role">' + esc(member.role) + "</p>"
@@ -172,7 +175,7 @@
     root.innerHTML = articles.map(function (article) {
       var href = safeHttps(article.linkUrl);
       var media = article.imageUrl
-        ? '<div class="resource-media"><img src="' + esc(resolveImg(article.imageUrl)) + '" alt="' + esc(article.title) + '" loading="lazy"></div>'
+        ? '<div class="resource-media"><img src="' + esc(resolveImg(article.imageUrl)) + '" alt="' + esc(article.title) + '" loading="lazy" decoding="async"></div>'
         : '<div class="resource-media resource-placeholder"><span>Environmental learning</span></div>';
       return '<article class="resource-card">' + media + '<div class="resource-body"><h3>' + esc(article.title)
         + "</h3><p>" + esc(article.description) + "</p>"
@@ -352,14 +355,44 @@
   var grid = document.getElementById("galleryGrid");
   var lb = document.getElementById("galLightbox");
   if (grid && lb) {
+    var previousFocus = null;
+    var closeControl = lb.querySelector(".gal-lb-close");
+    var closeLightbox = function () {
+      lb.classList.remove("open");
+      lb.setAttribute("aria-hidden", "true");
+      if (previousFocus && previousFocus.focus) previousFocus.focus();
+    };
+    var openLightbox = function (card) {
+      previousFocus = card;
+      var image = lb.querySelector("img");
+      image.src = card.getAttribute("data-full");
+      image.alt = card.getAttribute("data-title") || "Gallery image";
+      lb.querySelector(".gal-lb-cap").textContent = card.getAttribute("data-title") || "";
+      lb.classList.add("open");
+      lb.setAttribute("aria-hidden", "false");
+      if (closeControl) closeControl.focus();
+    };
+    lb.setAttribute("role", "dialog");
+    lb.setAttribute("aria-modal", "true");
+    lb.setAttribute("aria-label", "Gallery image preview");
+    lb.setAttribute("aria-hidden", "true");
     grid.addEventListener("click", function (e) {
       var c = e.target.closest(".gal-card.has-img");
       if (!c) return;
-      lb.querySelector("img").src = c.getAttribute("data-full");
-      lb.querySelector(".gal-lb-cap").textContent = c.getAttribute("data-title") || "";
-      lb.classList.add("open");
+      openLightbox(c);
     });
-    lb.addEventListener("click", function () { lb.classList.remove("open"); });
+    grid.addEventListener("keydown", function (event) {
+      var c = event.target.closest(".gal-card.has-img");
+      if (!c || (event.key !== "Enter" && event.key !== " ")) return;
+      event.preventDefault();
+      openLightbox(c);
+    });
+    lb.addEventListener("click", function (event) {
+      if (event.target === lb || event.target === closeControl) closeLightbox();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && lb.classList.contains("open")) closeLightbox();
+    });
   }
 
   /* expose for admin.html */

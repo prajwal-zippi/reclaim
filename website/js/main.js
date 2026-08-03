@@ -2,9 +2,44 @@
 (function () {
   "use strict";
 
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* Global landmarks and a discreet page-progress indicator. */
+  const main = document.querySelector("main");
+  if (main) {
+    if (!main.id) main.id = "main-content";
+    if (!document.querySelector(".skip-link")) {
+      const skip = document.createElement("a");
+      skip.className = "skip-link";
+      skip.href = `#${main.id}`;
+      skip.textContent = "Skip to main content";
+      document.body.prepend(skip);
+    }
+  }
+  const progress = document.createElement("div");
+  progress.className = "page-progress";
+  progress.setAttribute("aria-hidden", "true");
+  document.body.prepend(progress);
+
+  /* Decorative motion fields extend the circular Reclaim Era language across
+     long pages without adding visual noise to every section. */
+  document.querySelectorAll("main .section").forEach((section, index) => {
+    if (index % 2 === 0 || section.classList.contains("impact-now")) return;
+    section.classList.add("has-motion-field");
+    const field = document.createElement("span");
+    field.className = "motion-field";
+    field.setAttribute("aria-hidden", "true");
+    field.innerHTML = '<i class="motion-ring"></i><i class="motion-dot motion-dot-a"></i><i class="motion-dot motion-dot-b"></i>';
+    section.prepend(field);
+  });
+
   /* header shadow on scroll */
   const header = document.querySelector(".header");
-  const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 8);
+  const onScroll = () => {
+    if (header) header.classList.toggle("scrolled", window.scrollY > 8);
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.transform = `scaleX(${max > 0 ? Math.min(window.scrollY / max, 1) : 0})`;
+  };
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
@@ -13,7 +48,9 @@
   if (toggle) {
     toggle.addEventListener("click", () => {
       document.body.classList.toggle("nav-open");
-      toggle.setAttribute("aria-expanded", document.body.classList.contains("nav-open"));
+      const open = document.body.classList.contains("nav-open");
+      toggle.setAttribute("aria-expanded", open);
+      toggle.setAttribute("aria-label", open ? "Close menu" : "Menu");
     });
   }
 
@@ -30,6 +67,28 @@
     document.querySelectorAll(".nav li.open").forEach((li) => {
       if (!li.contains(e.target)) li.classList.remove("open");
     });
+  });
+  document.querySelectorAll(".nav a").forEach((link) => {
+    link.addEventListener("click", () => {
+      document.body.classList.remove("nav-open");
+      if (toggle) {
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.setAttribute("aria-label", "Menu");
+      }
+    });
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    document.body.classList.remove("nav-open");
+    document.querySelectorAll(".nav li.open").forEach((li) => {
+      li.classList.remove("open");
+      const trigger = li.querySelector(".nav-link");
+      if (trigger) trigger.setAttribute("aria-expanded", "false");
+    });
+    if (toggle) {
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "Menu");
+    }
   });
 
   /* Do not expose dead social links until the client supplies real profiles. */
@@ -52,6 +111,77 @@
     revealEls.forEach((el) => io.observe(el));
   } else {
     revealEls.forEach((el) => el.classList.add("in"));
+  }
+
+  const sectionHeads = document.querySelectorAll(".section-head");
+  if ("IntersectionObserver" in window && sectionHeads.length) {
+    const headObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("motion-in");
+        headObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.45 });
+    sectionHeads.forEach((heading) => headObserver.observe(heading));
+  } else {
+    sectionHeads.forEach((heading) => heading.classList.add("motion-in"));
+  }
+
+  /* Pointer lighting and restrained depth, only on precise pointing devices. */
+  if (!reducedMotion && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    document.addEventListener("pointermove", (event) => {
+      document.documentElement.style.setProperty("--pointer-x", `${event.clientX}px`);
+      document.documentElement.style.setProperty("--pointer-y", `${event.clientY}px`);
+    }, { passive: true });
+
+    const enhanceDepthCards = (root = document) => root.querySelectorAll(".step-card,.init-card,.feat-card,.prod-card,.impact-card,.gal-card,.partner-card").forEach((card) => {
+      if (card.dataset.depthReady === "true") return;
+      card.dataset.depthReady = "true";
+      card.classList.add("depth-card");
+      card.addEventListener("pointermove", (event) => {
+        const box = card.getBoundingClientRect();
+        const x = (event.clientX - box.left) / box.width;
+        const y = (event.clientY - box.top) / box.height;
+        card.style.setProperty("--card-x", `${x * 100}%`);
+        card.style.setProperty("--card-y", `${y * 100}%`);
+        card.style.setProperty("--tilt-x", `${(0.5 - y) * 3.5}deg`);
+        card.style.setProperty("--tilt-y", `${(x - 0.5) * 3.5}deg`);
+      });
+      card.addEventListener("pointerleave", () => {
+        card.style.removeProperty("--tilt-x");
+        card.style.removeProperty("--tilt-y");
+      });
+    });
+    enhanceDepthCards();
+    document.querySelectorAll('[data-render]').forEach((region) => {
+      new MutationObserver(() => enhanceDepthCards(region)).observe(region, { childList: true });
+    });
+
+    const heroVisual = document.querySelector(".hero-visual");
+    if (heroVisual) {
+      heroVisual.addEventListener("pointermove", (event) => {
+        const box = heroVisual.getBoundingClientRect();
+        heroVisual.style.setProperty("--hero-x", `${((event.clientX - box.left) / box.width - 0.5) * 14}px`);
+        heroVisual.style.setProperty("--hero-y", `${((event.clientY - box.top) / box.height - 0.5) * 14}px`);
+      });
+      heroVisual.addEventListener("pointerleave", () => {
+        heroVisual.style.setProperty("--hero-x", "0px");
+        heroVisual.style.setProperty("--hero-y", "0px");
+      });
+    }
+
+    /* A restrained magnetic response for primary actions. The movement is
+       intentionally small so labels stay readable and buttons never feel
+       detached from their layout position. */
+    document.querySelectorAll(".header-cta .btn,.hero-ctas .btn").forEach((button) => {
+      button.addEventListener("pointermove", (event) => {
+        const box = button.getBoundingClientRect();
+        const x = ((event.clientX - box.left) / box.width - 0.5) * 7;
+        const y = ((event.clientY - box.top) / box.height - 0.5) * 7;
+        button.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      });
+      button.addEventListener("pointerleave", () => button.style.removeProperty("transform"));
+    });
   }
 
   /* animated counters */
@@ -120,6 +250,7 @@
       if (ok) ok.classList.remove("show");
       if (err) err.classList.remove("show");
       const original = btn ? btn.innerHTML : "";
+      form.setAttribute("aria-busy", "true");
       if (btn) {
         btn.disabled = true;
         btn.innerHTML = "Sending…";
@@ -160,6 +291,7 @@
           reToast("We couldn’t subscribe you right now. Please check your connection and retry.");
         }
       } finally {
+        form.removeAttribute("aria-busy");
         if (btn) {
           btn.disabled = false;
           btn.innerHTML = original;
