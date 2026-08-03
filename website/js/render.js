@@ -164,13 +164,10 @@
     if (!sellers.length && data.seller) sellers = [{id:"legacy-seller",name:data.seller.name,biography:data.seller.description,websiteUrl:data.seller.profileUrl,visible:true,order:0}];
     sellers = sellers.filter(function(s){return s && s.visible !== false;}).sort(function(a,b){return Number(a.order||0)-Number(b.order||0);});
     if (!sellers.length) { root.innerHTML = '<p class="seller-empty">Seller profiles will be published here soon.</p>'; return; }
-    var badges = Array.isArray(data.impactMetrics) ? data.impactMetrics : [];
     root.innerHTML = '<div class="seller-grid">' + sellers.map(function(seller){
       var href=safeHttps(seller.websiteUrl||seller.profileUrl), photo=seller.imageUrl?'<img src="'+esc(resolveImg(seller.imageUrl))+'" alt="'+esc(seller.name)+'" loading="lazy">':'<span>'+esc(initials(seller.name))+'</span>';
-      var sellerBadges=(seller.badgeIds||[]).map(function(id){return badges.find(function(b){return b.id===id&&b.visible!==false;});}).filter(Boolean);
       var socials=Object.keys(seller.socialLinks||{}).map(function(name){var url=safeHttps(seller.socialLinks[name]);return url?'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(name.charAt(0).toUpperCase()+name.slice(1))+' ↗</a>':'';}).join('');
       return '<article class="seller-card"><div class="seller-photo">'+photo+'</div><div><p class="eyebrow">'+esc(seller.role||"Seller profile")+'</p><h3>'+esc(seller.name)+'</h3><p>'+esc(seller.biography||seller.description||"")+'</p>'
-        +(sellerBadges.length?'<div class="seller-badges">'+sellerBadges.map(function(b){return '<span>'+esc(b.value||b.description)+'</span>';}).join('')+'</div>':'')
         +'<div class="seller-links">'+(seller.contactEmail?'<a href="mailto:'+esc(seller.contactEmail)+'">Email</a>':'')+(seller.contactPhone?'<a href="tel:'+esc(String(seller.contactPhone).replace(/[^+\d]/g,""))+'">Call</a>':'')+(href?'<a href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">Website ↗</a>':'')+socials+'</div></div></article>';
     }).join('') + '</div>';
   }
