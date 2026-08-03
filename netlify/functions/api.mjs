@@ -303,7 +303,7 @@ function validateContent(content) {
   if (teamMembers.length > 200 || education.length > 200 || branches.length > 100 || impactMetrics.length > 30 || icons.length > 200 || badges.length > 500 || sellers.length > 500) {
     return "One or more content collections exceed the supported limit.";
   }
-  const unsafeImage = [...content.products, ...content.gallery, ...teamMembers, ...education, ...icons, ...badges, ...sellers].some(
+  const unsafeImage = [...content.products, ...content.gallery, ...teamMembers, ...education, ...impactMetrics, ...icons, ...badges, ...sellers].some(
     (item) => item && !validImageUrl(item.imageUrl)
   );
   if (unsafeImage) return "Image URLs must use HTTPS or a secure uploaded image.";
@@ -319,6 +319,8 @@ function validateContent(content) {
   })) return "External links must use HTTPS.";
   const ids = [...icons, ...badges, ...sellers].map((item) => String(item && item.id || "").trim());
   if (ids.some((id) => !id) || new Set(ids).size !== ids.length) return "Icons, badges and sellers need unique IDs.";
+  const impactIds = impactMetrics.map((item) => String(item && item.id || "").trim());
+  if (impactIds.some((id) => !id) || new Set(impactIds).size !== impactIds.length) return "Impact badges need unique IDs.";
   if (sellers.some((item) => !String(item && item.name || "").trim())) return "Every seller needs a name.";
   if (sellers.some((item) => item.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(item.contactEmail)))) return "A seller email address is invalid.";
   if (branches.some((branch) => {
@@ -339,6 +341,7 @@ function normalizeContent(content) {
     }));
   }
   normalized.icons = Array.isArray(content.icons) ? content.icons : [];
+  normalized.impactMetrics = Array.isArray(content.impactMetrics) ? content.impactMetrics.map((item,index)=>({...item,order:Number.isFinite(Number(item.order))?Number(item.order):index,visible:item.visible!==false})) : [];
   normalized.badges = Array.isArray(content.badges) ? content.badges.map((item,index)=>({...item,order:Number.isFinite(Number(item.order))?Number(item.order):index,visible:item.visible!==false})) : [];
   normalized.sellers = Array.isArray(content.sellers) ? content.sellers.map((item,index)=>({...item,socialLinks:item.socialLinks||{},badgeIds:Array.isArray(item.badgeIds)?item.badgeIds:[],order:Number.isFinite(Number(item.order))?Number(item.order):index,visible:item.visible!==false})) : [];
   if (!normalized.sellers.length && content.seller && content.seller.name) normalized.sellers=[{id:"legacy-seller",name:content.seller.name,role:"Official seller",biography:content.seller.description||"",imageUrl:"",contactEmail:"",contactPhone:"",socialLinks:{},websiteUrl:content.seller.profileUrl||"",badgeIds:[],order:0,visible:true}];

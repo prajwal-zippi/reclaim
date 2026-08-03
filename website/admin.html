@@ -115,9 +115,10 @@
   </section>
 
   <section class="adm-section">
-    <h2>Impact numbers &amp; descriptions</h2>
-    <p class="sub">Edit all nine impact cards. The first three numbers also update the matching home-page animation values everywhere they appear.</p>
+    <h2>Impact badges &amp; right-side icons</h2>
+    <p class="sub">Edit, reorder, hide or remove every card under “Progress you can count”. Uploading an icon replaces the small icon on the right side of that card.</p>
     <div id="impactMetricList"></div>
+    <button class="btn btn-green" onclick="addMetric()">+ Add impact badge</button>
   </section>
 
   <section class="adm-section">
@@ -170,10 +171,10 @@
   </div>
 </div>
 
-<script src="js/config.js?v=1785771000"></script>
-<script src="js/gallery-data.js?v=1785771000"></script>
-<script src="js/site-data.js?v=1785771000"></script>
-<script src="js/render.js?v=1785771000"></script>
+<script src="js/config.js?v=1785773000"></script>
+<script src="js/gallery-data.js?v=1785773000"></script>
+<script src="js/site-data.js?v=1785773000"></script>
+<script src="js/render.js?v=1785773000"></script>
 <script>
 (function () {
   "use strict";
@@ -533,12 +534,15 @@
   function renderImpactEditors() {
     var metrics = Array.isArray(state.impactMetrics) ? state.impactMetrics : [];
     impactMetricEl.innerHTML = metrics.map(function (metric, i) {
-      return '<div class="prod-editor impact-editor"><div class="metric-number">' + R.esc(metric.value || "—") + '</div>'
+      var iconPreview=metric.imageUrl?'<img src="'+R.esc(resolveImg(metric.imageUrl))+'" alt="" style="width:56px;height:56px;object-fit:contain">':'<div class="metric-number">'+R.esc(metric.value||"—")+'</div>';
+      return '<div class="prod-editor impact-editor"><div class="prod-thumb">' + iconPreview + '</div>'
         + '<div class="pe-fields">'
         + field("Number / value", metric.value, "upMetricValue", i)
         + field("Icon ID", metric.icon, "upMetricIcon", i)
         + field("Description", metric.description, "upMetricDescription", i, "full")
-        + '</div></div>';
+        + '<div class="field full"><label>Upload right-side icon (JPEG/PNG)</label><input type="file" accept="image/png,image/jpeg" onchange="pickMetricIcon(event,'+i+')"></div>'
+        + '<label class="check"><input type="checkbox" '+(metric.visible!==false?'checked':'')+' onchange="toggleMetric('+i+',this.checked)"> Show on site</label>'
+        + '</div><div class="pe-actions"><button class="icon-btn" title="Move up" onclick="moveMetric('+i+',-1)">↑</button><button class="icon-btn" title="Move down" onclick="moveMetric('+i+',1)">↓</button><button class="icon-btn danger" title="Delete" onclick="delMetric('+i+')">✕</button></div></div>';
     }).join("") || '<p style="color:var(--ink-soft);margin-bottom:16px">No impact metrics are available yet.</p>';
   }
   window.upMetricValue = function (i, value) {
@@ -554,6 +558,11 @@
     save();
   };
   window.upMetricIcon = function (i, value) { state.impactMetrics[i].icon = value.trim(); save(); };
+  window.pickMetricIcon=function(e,i){var f=e.target.files&&e.target.files[0];if(!f)return;uploadImage(f,function(url,err){if(err){statusEl.textContent=err;return}state.impactMetrics[i].imageUrl=url;save();renderImpactEditors()})};
+  window.toggleMetric=function(i,value){state.impactMetrics[i].visible=value;save()};
+  window.moveMetric=function(i,d){var j=i+d;if(j<0||j>=state.impactMetrics.length)return;var t=state.impactMetrics[i];state.impactMetrics[i]=state.impactMetrics[j];state.impactMetrics[j]=t;state.impactMetrics.forEach(function(x,n){x.order=n});save();renderImpactEditors()};
+  window.delMetric=function(i){if(!confirm("Delete this impact badge?"))return;state.impactMetrics.splice(i,1);save();renderImpactEditors()};
+  window.addMetric=function(){state.impactMetrics.push({id:"impact-"+Date.now(),value:"0",description:"New impact badge",icon:"recycle",imageUrl:"",visible:true,order:state.impactMetrics.length});save();renderImpactEditors()};
 
   /* ------- gallery editors ------- */
   function galField(label, value, fn, idx, extra) {
