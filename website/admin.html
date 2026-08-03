@@ -50,7 +50,11 @@
   .pw-checks{display:flex;gap:8px 14px;flex-wrap:wrap;margin:14px 0 18px}
   .pw-checks li{font-size:.8rem;font-weight:600;color:var(--ink-soft);padding:5px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper)}
   .pw-checks li.ok{color:var(--green-deep);border-color:var(--green);background:var(--green-tint)}
-  .impact-editor{grid-template-columns:92px 1fr}
+  .impact-editor{grid-template-columns:92px minmax(0,1fr);position:relative;padding:24px}
+  .impact-editor .pe-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px;padding-top:4px;border-top:1px solid var(--line)}
+  .impact-editor .metric-upload{padding:14px;border:1px dashed rgba(0,137,72,.35);border-radius:14px;background:var(--green-tint)}
+  .impact-editor .metric-upload small{display:block;color:var(--ink-soft);margin-top:6px}
+  .metric-icon-label{display:grid;place-items:center;width:76px;height:76px;border-radius:20px;background:var(--green-tint);color:var(--green-deep);font-size:.7rem;font-weight:800;text-align:center;word-break:break-word;padding:8px}
   .metric-number{width:76px;height:76px;border-radius:20px;background:var(--green-tint);color:var(--green-deep);display:grid;place-items:center;font-family:var(--font-display);font-size:1.3rem;font-weight:800}
   .gate{position:fixed;inset:0;z-index:300;background:var(--cream);display:grid;place-items:center;padding:24px}
   .gate .form-card{max-width:420px;width:100%;text-align:center}
@@ -359,11 +363,11 @@
     reader.onerror = function () { cb(null, "Could not read that file."); };
     reader.readAsDataURL(file);
   }
-  function uploadImage(file, done) {
+  function uploadImage(file, done, maxDim) {
     if (!HAS_BACKEND) { done(null, "Photo upload needs the backend. Paste an image link (https…) in the field instead."); return; }
     var token = sessionStorage.getItem(TOKEN_KEY);
     if (!token || token === "local") { done(null, "Uploads need the backend running / server login."); return; }
-    compressImage(file, 1600, function (dataUrl, err) {
+    compressImage(file, maxDim || 1600, function (dataUrl, err) {
       if (err) { done(null, err); return; }
       document.getElementById("statusText").textContent = "Uploading image…";
       fetch(API_BASE + "/api/admin/upload", {
@@ -534,14 +538,15 @@
   function renderImpactEditors() {
     var metrics = Array.isArray(state.impactMetrics) ? state.impactMetrics : [];
     impactMetricEl.innerHTML = metrics.map(function (metric, i) {
-      var iconPreview=metric.imageUrl?'<img src="'+R.esc(resolveImg(metric.imageUrl))+'" alt="" style="width:56px;height:56px;object-fit:contain">':'<div class="metric-number">'+R.esc(metric.value||"—")+'</div>';
+      var iconPreview=metric.imageUrl?'<img src="'+R.esc(resolveImg(metric.imageUrl))+'" alt="Uploaded icon preview" style="width:64px;height:64px;object-fit:contain">':'<span class="metric-icon-label">'+R.esc(metric.icon||"recycle")+'</span>';
       return '<div class="prod-editor impact-editor"><div class="prod-thumb">' + iconPreview + '</div>'
         + '<div class="pe-fields">'
         + field("Number / value", metric.value, "upMetricValue", i)
-        + field("Icon ID", metric.icon, "upMetricIcon", i)
+        + '<div class="field"><label>Built-in icon</label><select onchange="upMetricIcon('+i+',this.value)">'+["recycle","livelihood","school","leaf","people","bag","bicycle","run","book"].map(function(name){return '<option value="'+name+'" '+(metric.icon===name?'selected':'')+'>'+name.charAt(0).toUpperCase()+name.slice(1)+'</option>'}).join('')+'</select></div>'
         + field("Description", metric.description, "upMetricDescription", i, "full")
-        + '<div class="field full"><label>Upload right-side icon (JPEG/PNG)</label><input type="file" accept="image/png,image/jpeg" onchange="pickMetricIcon(event,'+i+')"></div>'
-        + '<label class="check"><input type="checkbox" '+(metric.visible!==false?'checked':'')+' onchange="toggleMetric('+i+',this.checked)"> Show on site</label>'
+        + field("Custom icon URL (optional HTTPS)", metric.imageUrl, "upMetricImageUrl", i, "full")
+        + '<div class="field full metric-upload"><label>Or upload a custom right-side icon</label><input type="file" accept="image/png,image/jpeg" onchange="pickMetricIcon(event,'+i+')"><small>PNG or JPEG, automatically resized to 512 px.</small>'+(metric.imageUrl?'<button type="button" class="btn btn-outline btn-sm" style="margin-top:10px" onclick="removeMetricIcon('+i+')">Remove custom icon</button>':'')+'</div>'
+        + '<label class="switch-row"><input type="checkbox" '+(metric.visible!==false?'checked':'')+' onchange="toggleMetric('+i+',this.checked)"> Show on site</label>'
         + '</div><div class="pe-actions"><button class="icon-btn" title="Move up" onclick="moveMetric('+i+',-1)">↑</button><button class="icon-btn" title="Move down" onclick="moveMetric('+i+',1)">↓</button><button class="icon-btn danger" title="Delete" onclick="delMetric('+i+')">✕</button></div></div>';
     }).join("") || '<p style="color:var(--ink-soft);margin-bottom:16px">No impact metrics are available yet.</p>';
   }
@@ -558,11 +563,13 @@
     save();
   };
   window.upMetricIcon = function (i, value) { state.impactMetrics[i].icon = value.trim(); save(); };
-  window.pickMetricIcon=function(e,i){var f=e.target.files&&e.target.files[0];if(!f)return;uploadImage(f,function(url,err){if(err){statusEl.textContent=err;return}state.impactMetrics[i].imageUrl=url;save();renderImpactEditors()})};
+  window.upMetricImageUrl=function(i,value){state.impactMetrics[i].imageUrl=value.trim();save()};
+  window.pickMetricIcon=function(e,i){var f=e.target.files&&e.target.files[0];if(!f)return;if(f.size>3.5*1024*1024){statusEl.textContent="Icon must be smaller than 3.5 MB.";return}uploadImage(f,function(url,err){if(err){statusEl.textContent=err;return}state.impactMetrics[i].imageUrl=url;statusEl.textContent="Icon uploaded. Publishing…";save();renderImpactEditors()},512)};
+  window.removeMetricIcon=function(i){state.impactMetrics[i].imageUrl="";save();renderImpactEditors()};
   window.toggleMetric=function(i,value){state.impactMetrics[i].visible=value;save()};
   window.moveMetric=function(i,d){var j=i+d;if(j<0||j>=state.impactMetrics.length)return;var t=state.impactMetrics[i];state.impactMetrics[i]=state.impactMetrics[j];state.impactMetrics[j]=t;state.impactMetrics.forEach(function(x,n){x.order=n});save();renderImpactEditors()};
   window.delMetric=function(i){if(!confirm("Delete this impact badge?"))return;state.impactMetrics.splice(i,1);save();renderImpactEditors()};
-  window.addMetric=function(){state.impactMetrics.push({id:"impact-"+Date.now(),value:"0",description:"New impact badge",icon:"recycle",imageUrl:"",visible:true,order:state.impactMetrics.length});save();renderImpactEditors()};
+  window.addMetric=function(){state.impactMetrics.push({id:"impact-"+Date.now(),value:"0",description:"Describe this impact",icon:"recycle",imageUrl:"",visible:true,order:state.impactMetrics.length});save();renderImpactEditors();var cards=impactMetricEl.querySelectorAll(".impact-editor");if(cards.length)cards[cards.length-1].scrollIntoView({behavior:"smooth",block:"center"})};
 
   /* ------- gallery editors ------- */
   function galField(label, value, fn, idx, extra) {
