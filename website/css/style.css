@@ -452,6 +452,7 @@ h1,h2,h3,.display{font-family:var(--font-display);font-weight:700;line-height:1.
 
 /* phases */
 .phase-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.phase-kicker{display:block;margin:5px 0 10px;color:var(--green-deep);font-size:.78rem;font-style:italic;font-weight:700;letter-spacing:.035em}.phase-final{grid-column:1/-1}
 .phase{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);padding:32px;display:flex;gap:22px;transition:transform .25s,box-shadow .25s}
 .phase:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
 .phase .ph-num{
@@ -769,7 +770,7 @@ body.nav-open .nav-toggle .icon-close{display:block}
   .team-grid{grid-template-columns:1fr}
   .resource-grid{grid-template-columns:1fr 1fr}
   .branch-layout{grid-template-columns:1fr}
-  .phase-grid{grid-template-columns:1fr}
+  .phase-grid{grid-template-columns:1fr}.phase-final{grid-column:auto}
   .res-grid{grid-template-columns:1fr}
   .form-card{padding:30px 24px}
   .info-panel{position:static}
