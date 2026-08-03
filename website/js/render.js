@@ -301,7 +301,7 @@
   var staticData = window.RE_DATA || {};
   var staticGallery = window.RE_GALLERY || [];
 
-  var CACHE_KEY = "re-content-cache";
+  var CACHE_KEY = "re-content-cache-v2";
   var SYNC_CHANNEL = "reclaim-era-live-content";
   var liveChannel = null;
 

@@ -21,3 +21,12 @@
 /admin-content.html
   Cache-Control: no-store
   X-Robots-Tag: noindex, nofollow, noarchive
+
+/js/render.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/js/site-data.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/js/config.js
+  Cache-Control: no-cache, no-store, must-revalidate

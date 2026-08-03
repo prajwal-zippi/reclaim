@@ -55,7 +55,7 @@ body{padding-bottom:100px}.cm-head{position:sticky;top:0;z-index:50;background:v
 (function(){
 "use strict";
 var API=(location.hostname==="localhost"||location.hostname==="127.0.0.1")?"http://localhost:5001":(window.RE_API_BASE||"");
-var TOKEN_KEY="re-admin-token", USERNAME_KEY="re-admin-username", CACHE_KEY="re-content-cache", CHANNEL="reclaim-era-live-content";
+var TOKEN_KEY="re-admin-token", USERNAME_KEY="re-admin-username", CACHE_KEY="re-content-cache-v2", CHANNEL="reclaim-era-live-content";
 var state=null, category="core", timer=0, saving=false, queued=false, version=0, savedVersion=0;
 var gate=document.getElementById("gate"), statusEl=document.getElementById("cmStatus"), publishBtn=document.getElementById("cmPublish");
 var teamTabs=document.getElementById("teamTabs"),teamList=document.getElementById("teamList"),educationList=document.getElementById("educationList"),branchList=document.getElementById("branchList"),sellerList=document.getElementById("sellerList");
