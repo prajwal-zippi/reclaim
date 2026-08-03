@@ -1190,3 +1190,24 @@ body::after{content:"";position:fixed;inset:0;z-index:1000;pointer-events:none;b
   .footer-links a{display:inline-flex;align-items:center;min-height:36px;padding-block:7px}
   .footer-bottom a,.text-link{display:inline-flex;align-items:center;min-height:34px}
 }
+
+/* Mobile navigation must use an explicit viewport height. Safari can resolve
+   top + bottom against the sticky header's containing block, collapsing the
+   fixed menu to a narrow strip and hiding its links. */
+@media(max-width:1140px){
+  .nav{
+    top:var(--header-h);
+    right:0;
+    bottom:auto;
+    left:0;
+    width:100%;
+    height:calc(100vh - var(--header-h));
+    height:calc(100dvh - var(--header-h));
+    min-height:calc(100vh - var(--header-h));
+    background:var(--cream);
+    backdrop-filter:none;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+}
