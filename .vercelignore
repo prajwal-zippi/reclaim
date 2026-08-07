@@ -1,0 +1,22 @@
+# Vercel should publish only the website and its serverless API dependencies.
+.claude/
+.netlify/
+.wrangler/
+backend/
+client-handover/
+mobile-screenshots/
+tmp/
+tools/
+
+*.pages
+*.pdf
+*.zip
+PHOTO-*.jpg
+
+/Client-Guide.html
+/Reclaim_Era_Website_Documentation.html
+/UX-REDESIGN-ARCHITECTURE.md
+/README.md
+
+functions/
+netlify.toml

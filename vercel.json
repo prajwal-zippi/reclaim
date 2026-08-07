@@ -1,6 +1,14 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{netlify/functions/api.mjs,node_modules/@neondatabase/serverless/index.js,node_modules/@neondatabase/serverless/index.mjs,node_modules/@neondatabase/serverless/package.json}"
+    }
+  },
   "rewrites": [
-    { "source": "/", "destination": "/website/index.html" },
-    { "source": "/((?!api/).*)", "destination": "/website/$1" }
+    { "source": "/api/:path*", "destination": "/api?path=:path" },
+    { "source": "/", "destination": "/website/index" },
+    { "source": "/:path((?!api(?:/|$)).*)", "destination": "/website/:path" }
   ]
 }
