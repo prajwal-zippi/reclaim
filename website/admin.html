@@ -487,6 +487,7 @@
         '<div class="field"><label>Artwork (used if no photo)</label><select onchange="upArt(' + i + ', this.value)">' + opts + "</select></div>" +
         '<div class="field full"><label>Product photo — upload JPEG/PNG (optional, replaces artwork)</label><input type="file" accept="image/png,image/jpeg" onchange="pickProdImg(event,' + i + ')"></div>' +
         field("…or paste a photo link (https), clear to use artwork", p.imageUrl, "upImg", i, "full") +
+        (p.imageUrl ? '<div class="field full"><button type="button" class="btn btn-outline btn-sm" onclick="removeProdImg(' + i + ')">Remove product image</button></div>' : '') +
         field("Price / pricing note (e.g. ₹799 or Price on request)", p.price || "Price on request", "upPrice", i) +
         field("Impact line (e.g. Funds 10 notebooks)", p.impact, "upImpact", i) +
         field("Short description", p.desc, "upDesc", i, "full") +
@@ -504,6 +505,7 @@
 
   window.upName = function (i, v) { state.products[i].name = v; save(); };
   window.upImg = function (i, v) { state.products[i].imageUrl = v; save(); };
+  window.removeProdImg = function (i) { state.products[i].imageUrl = ""; save(); renderEditors(); };
   window.upPrice = function (i, v) { state.products[i].price = v; save(); };
   window.upImpact = function (i, v) { state.products[i].impact = v; save(); };
   window.upDesc = function (i, v) { state.products[i].desc = v; save(); };
@@ -586,6 +588,7 @@
         '<div class="pe-fields">' +
         '<div class="field full"><label>Upload a photo (JPEG or PNG)</label><input type="file" accept="image/png,image/jpeg" onchange="pickEvImg(event,' + i + ')"></div>' +
         galField("…or paste an image link (https)", ev.imageUrl, "upEvImg", i, "full") +
+        (ev.imageUrl ? '<div class="field full"><button type="button" class="btn btn-outline btn-sm" onclick="removeEvImg(' + i + ')">Remove gallery image</button></div>' : '') +
         galField("Title", ev.title, "upEvTitle", i) +
         galField("Date (e.g. March 2026)", ev.date, "upEvDate", i) +
         galField("Short description", ev.description, "upEvDesc", i, "full") +
@@ -597,6 +600,7 @@
     }).join("") || '<p style="color:var(--ink-soft);margin-bottom:16px">No events yet. Add your first one below.</p>';
   }
   window.upEvImg = function (i, v) { state.gallery[i].imageUrl = v; save(); };
+  window.removeEvImg = function (i) { state.gallery[i].imageUrl = ""; save(); renderGalleryEditors(); };
   window.upEvTitle = function (i, v) { state.gallery[i].title = v; save(); };
   window.upEvDate = function (i, v) { state.gallery[i].date = v; save(); };
   window.upEvDesc = function (i, v) { state.gallery[i].description = v; save(); };
